@@ -55,7 +55,7 @@ plan(T, D) :- trip(T), tripdist(T, D).
 
 solution(X) :- findall(D-T, plan(T,D), P), keysort(P, [X|_]).
 
-
+longsolution(X) :- findall(D-T, plan(T,D), P), keysort(P, S), reverse(S, [X|_]).
 
 
 
