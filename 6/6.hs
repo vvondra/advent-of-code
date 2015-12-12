@@ -5,10 +5,10 @@ import Data.List
 import Data.Matrix
 
 
-data Action = On | Off | Toggle deriving Show
-data Point = Point Int Int deriving Show
-data Range = Range Point Point deriving Show
-data Instruction = Instruction Action Range deriving Show
+data Action = Action (Bool -> Bool)
+data Point = Point Int Int
+data Range = Range Point Point
+data Instruction = Instruction Action Range
 
 main = do
     contents <- readFile "input2"
@@ -22,23 +22,15 @@ main = do
 
 executeInstruction :: Instruction -> [[Bool]] -> [[Bool]]
 
-executeInstruction (Instruction On (Range (Point sx sy) (Point ex ey))) matrix =
+executeInstruction (Instruction (Action action) (Range (Point sx sy) (Point ex ey))) matrix =
     [ if y < sy || y > ey then row else
-        [ if x < sx || x > ex then el else True | (el, x) <- zip row [0..]]
-        | (row, y) <- zip matrix [0..]]
-executeInstruction (Instruction Toggle (Range (Point sx sy) (Point ex ey))) matrix =
-    [ if y < sy || y > ey then row else
-        [ if x < sx || x > ex then el else not el | (el, x) <- zip row [0..]]
-        | (row, y) <- zip matrix [0..]]
-executeInstruction (Instruction Off (Range (Point sx sy) (Point ex ey))) matrix =
-    [ if y < sy || y > ey then row else
-        [ if x < sx || x > ex then el else False | (el, x) <- zip row [0..]]
+        [ if x < sx || x > ex then el else action el | (el, x) <- zip row [0..]]
         | (row, y) <- zip matrix [0..]]
 
 readInstruction :: [String] -> Instruction
-readInstruction ("toggle" : range) = Instruction Toggle (readRange range)
-readInstruction ("turn" : "on" : range) = Instruction On (readRange range)
-readInstruction ("turn" : "off" : range) = Instruction Off (readRange range)
+readInstruction ("toggle" : range) = Instruction (Action (\x -> not x)) (readRange range)
+readInstruction ("turn" : "on" : range) = Instruction (Action (\x -> True)) (readRange range)
+readInstruction ("turn" : "off" : range) = Instruction (Action (\x -> False)) (readRange range)
 readInstruction _ = error "Unknown instruction"
 
 readRange :: [String] -> Range
