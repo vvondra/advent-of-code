@@ -2,20 +2,38 @@ import qualified Data.Vector as V
 import Data.List.Split
 import Data.Array.IArray
 import Data.List
-
-data Point = Point Int Int
-data Range = Range Point Point
-
-main = do  
-        contents <- readFile "input"
-
-        print $ map readInstruction $ map words $ lines $ contents
+import Data.Matrix
 
 
-readInstruction :: [String] -> String
-readInstruction ("toggle" : range : _) = "tgl"
-readInstruction ("turn" : "on" : range) = "on"
-readInstruction ("turn" : "off" : range : _) = "off"
+data Action = On | Off | Toggle deriving Show
+data Point = Point Int Int deriving Show
+data Range = Range Point Point deriving Show
+data Instruction = Instruction Action Range deriving Show
+
+main = do
+    contents <- readFile "input2"
+
+    print $ compose (map executeInstruction $ map readInstruction $ map words $ lines $ contents) [[False,False],[False,False]]
+
+executeInstruction :: Instruction -> [[Bool]] -> [[Bool]]
+
+executeInstruction (Instruction On (Range (Point sx sy) (Point ex ey))) matrix =
+    [ if y < sy || y > ey then row else
+        [ if x < sx || x > ex then el else True | (el, x) <- zip row [0..]]
+        | (row, y) <- zip matrix [0..]]
+executeInstruction (Instruction Toggle (Range (Point sx sy) (Point ex ey))) matrix =
+    [ if y < sy || y > ey then row else
+        [ if x < sx || x > ex then el else not el | (el, x) <- zip row [0..]]
+        | (row, y) <- zip matrix [0..]]
+executeInstruction (Instruction Off (Range (Point sx sy) (Point ex ey))) matrix =
+    [ if y < sy || y > ey then row else
+        [ if x < sx || x > ex then el else False | (el, x) <- zip row [0..]]
+        | (row, y) <- zip matrix [0..]]
+
+readInstruction :: [String] -> Instruction
+readInstruction ("toggle" : range) = Instruction Toggle (readRange range)
+readInstruction ("turn" : "on" : range) = Instruction On (readRange range)
+readInstruction ("turn" : "off" : range) = Instruction Off (readRange range)
 readInstruction _ = error "Unknown instruction"
 
 readRange :: [String] -> Range
@@ -30,9 +48,5 @@ makePoint (a : b : _) = Point a b
 readInt :: String -> Int
 readInt = read
 
-foldt            :: (a -> a -> a) -> a -> [a] -> a
-foldt f z []     = z
-foldt f z [x]    = x
-foldt f z xs     = foldt f z (pairs f xs)
-
-pairs xs = zip xs (tail xs)
+compose :: [a -> a] -> a -> a
+compose fs v = foldl (flip (.)) id fs $ v
