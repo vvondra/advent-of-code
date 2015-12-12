@@ -9,5 +9,5 @@ Solving http://adventofcode.com/, one programming language per puzzle
 5. Go, still figuring out if I like the language or not
 6. Haskell, probably horribly inefficient, but very fun figuring out the right structure
 7. tbd
-8. tbd
+8. Bash, for some plain char counting
 9. Prolog, sweet and short for backtracking the Traveling Santa

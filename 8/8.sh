@@ -3,9 +3,9 @@
 
 BYTES_WO_WS=$(echo "$(wc -c < input ) - $(wc -l < input)" | bc)
 
-ESCAPE_COUNT=$(grep -o '\\x[a-z0-9][a-z0-9]' input | wc -l)
+ESCAPE_COUNT=$(grep -o '\\x[a-fA-F0-9][a-fA-F0-9]' input | wc -l)
 SLASH_COUNT=$(grep -o '\\\\' input | wc -l)
-QUOTE_COUNT=$(grep -o '\\"' input | wc -l)
+QUOTE_COUNT=$(grep -o '\\".' input | wc -l)
 LINE_COUNT=$(wc -l < input)
 
 
