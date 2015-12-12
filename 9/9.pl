@@ -39,7 +39,7 @@ dist(alphacentauri, arbre, 46).
 distance(A,B,V) :- dist(A,B,V); dist(B,A,V).
 
 places(Ps) :- setof(P, place(P), Ps).
-trip([P|T]) :- places([P|Ps]), permutation(Ps, T).
+trip(T) :- places(P), permutation(P, T).
 
 tripdist(T, D) :- tripdist(T, 0, D).
 
@@ -53,7 +53,7 @@ tripdist([], A, A).
 
 plan(T, D) :- trip(T), tripdist(T, D).
 
-solution(X) :- setof(D-T, plan(T,D), P), keysort(P, [X|_]).
+solution(X) :- findall(D-T, plan(T,D), P), keysort(P, [X|_]).
 
 
 
