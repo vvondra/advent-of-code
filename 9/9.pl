@@ -36,7 +36,7 @@ dist(straylight, alphacentauri, 107).
 dist(straylight, arbre, 14).
 dist(alphacentauri, arbre, 46).
 
-distance(A,B,V) :- dist(A,B,V); dist(B,A,V).
+distance(A, B, V) :- dist(A, B, V); dist(B, A, V).
 
 places(Ps) :- setof(P, place(P), Ps).
 trip(T) :- places(P), permutation(P, T).
@@ -56,10 +56,3 @@ plan(T, D) :- trip(T), tripdist(T, D).
 solution(X) :- findall(D-T, plan(T,D), P), keysort(P, [X|_]).
 
 longsolution(X) :- findall(D-T, plan(T,D), P), keysort(P, S), reverse(S, [X|_]).
-
-
-
-
-
-
-
