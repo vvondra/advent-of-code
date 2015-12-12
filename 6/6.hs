@@ -21,7 +21,6 @@ main = do
                     (replicate 1000 $ replicate 1000 False)
 
 executeInstruction :: Instruction -> [[Bool]] -> [[Bool]]
-
 executeInstruction (Instruction (Action action) (Range (Point sx sy) (Point ex ey))) matrix =
     [ if y < sy || y > ey then row else
         [ if x < sx || x > ex then el else action el | (el, x) <- zip row [0..]]
