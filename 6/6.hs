@@ -13,7 +13,12 @@ data Instruction = Instruction Action Range deriving Show
 main = do
     contents <- readFile "input2"
 
-    print $ compose (map executeInstruction $ map readInstruction $ map words $ lines $ contents) [[False,False],[False,False]]
+    print $
+        sum $
+            map (length . filter (\i -> i)) $
+                compose
+                    (map executeInstruction $ map readInstruction $ map words $ lines $ contents)
+                    (replicate 2 $ replicate 2 True)
 
 executeInstruction :: Instruction -> [[Bool]] -> [[Bool]]
 
