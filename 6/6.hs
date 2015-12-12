@@ -11,14 +11,14 @@ data Range = Range Point Point
 data Instruction = Instruction Action Range
 
 main = do
-    contents <- readFile "input2"
+    contents <- readFile "input"
 
     print $
         sum $
             map (length . filter (\i -> i)) $
                 compose
                     (map executeInstruction $ map readInstruction $ map words $ lines $ contents)
-                    (replicate 2 $ replicate 2 True)
+                    (replicate 1000 $ replicate 1000 False)
 
 executeInstruction :: Instruction -> [[Bool]] -> [[Bool]]
 
