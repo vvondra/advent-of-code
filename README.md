@@ -11,3 +11,4 @@ Solving http://adventofcode.com/, one programming language per puzzle
 7. tbd
 8. Bash, for some plain char counting
 9. Prolog, sweet and short for backtracking the Traveling Santa
+10. Clojure, failing to define the meaning of *juxtaposition* like always
