@@ -1,0 +1,12 @@
+[package]
+
+name = "7"
+version = "0.0.1"
+authors = [ "Vojtěch Vondra <vojtavondra@gmail.com>" ]
+
+[[bin]]
+name = "7"
+path = "src/7.rs"
+
+[dependencies]
+regex = "0.1.43"
