@@ -12,3 +12,4 @@ Solving http://adventofcode.com/, one programming language per puzzle
 8. tbd
 9. Prolog, sweet and short for backtracking the Traveling Santa
 10. Clojure, failing to define the meaning of *juxtaposition* like always
+11. C#, is it IEnumerable or IEnumerator?
