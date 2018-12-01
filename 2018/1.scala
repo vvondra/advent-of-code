@@ -1,0 +1,1 @@
+println(io.Source.stdin.getLines.map(_.toInt).sum)

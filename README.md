@@ -1,5 +1,11 @@
 # advent-of-code
 
+## 2018
+
+This time all in Scala
+
+## 2015
+
 Solving http://adventofcode.com/, one programming language per puzzle
 
 1. Ruby, to get started
