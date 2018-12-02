@@ -21,3 +21,4 @@ Solving http://adventofcode.com/, one programming language per puzzle
 11. C#, is it IEnumerable or IEnumerator?
 12. Node.js, best fit to parse JSON soup
 13. R, to generate all the permutations
+14. awk

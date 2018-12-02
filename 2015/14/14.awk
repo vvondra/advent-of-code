@@ -1,0 +1,28 @@
+BEGIN {
+    TIME=2503
+    MAX=0
+}
+{
+    SPEED=$4
+    DURATION=$7
+    PAUSE=$14
+
+    ELAPSED=0
+    TRAVELED=0
+    while (ELAPSED+DURATION <= TIME) {
+        ELAPSED=ELAPSED+DURATION
+        TRAVELED=TRAVELED+SPEED*DURATION
+
+        if (ELAPSED + PAUSE >= TIME) {
+            ELAPSED=TIME
+            break
+        }
+
+        ELAPSED=ELAPSED+PAUSE
+    }
+
+    TRAVELED=TRAVELED+(SPEED*(TIME-ELAPSED))
+
+    if (TRAVELED > MAX) { MAX = TRAVELED }
+}
+END { print MAX }
