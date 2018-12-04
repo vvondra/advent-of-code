@@ -23,3 +23,4 @@ Solving http://adventofcode.com/, one programming language per puzzle
 13. R, to generate all the permutations
 14. awk
 15. Scala, combinations are conveniently in standard library
+16. Julia, new kid on the block
