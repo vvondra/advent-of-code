@@ -1,5 +1,7 @@
+// Run with a higher heap size, the map collecting distances puts pressure on GC
+
 case class Node(index: Int, x: Int, y: Int)
-case class Distance(closest: Int, distance: Int)
+case class Distance(closest: Int, distance: Int, distances: Map[Int, Int])
 
 val coords = io.Source.stdin.getLines
   .map {
@@ -16,7 +18,7 @@ val coords = io.Source.stdin.getLines
 val topLeft = (coords.minBy(_.x).x - 1, coords.minBy(_.y).y - 1)
 val bottomRight = (coords.maxBy(_.x).x + 1, coords.maxBy(_.y).y + 1)
 
-val map = Array.fill[Distance](bottomRight._1 - topLeft._1 + 1, bottomRight._2 - topLeft._2 + 1)(Distance(0, Int.MaxValue))
+val map = Array.fill[Distance](bottomRight._1 - topLeft._1 + 1, bottomRight._2 - topLeft._2 + 1)(Distance(0, Int.MaxValue, Map.empty))
 
 def mapNodes = for {
   x <- 0 to bottomRight._1 - topLeft._1
@@ -32,15 +34,18 @@ coords.foreach(node =>
     case (x, y) =>
       val best = map(x)(y)
       val dist = distance(node, x, y)
+      val newDistances = best.distances + (node.index -> dist)
       if (dist < best.distance) {
-        map(x)(y) = Distance(node.index, dist)
+        map(x)(y) = Distance(node.index, dist, newDistances)
       } else if (dist == best.distance) {
-        map(x)(y) = Distance(0, dist)
+        map(x)(y) = Distance(0, dist, newDistances)
+      } else {
+        map(x)(y) = Distance(best.closest, best.distance, newDistances)
       }
   }
 )
 
-val biggest = coords
+val biggestUnsafe = coords
     .filterNot(c => {
       mapNodes.exists {
         case (x, y) => (x == 0 || y == 0 || x == bottomRight._1 - topLeft._1 || y == bottomRight._2 - topLeft._2) && map(x)(y).closest == c.index
@@ -53,4 +58,11 @@ val biggest = coords
     })
     .max
 
-println(biggest)
+println(biggestUnsafe)
+
+val largestSafe = mapNodes
+  .map {
+    case (x, y) => map(x)(y).distances.values.sum
+  }.count(_ < 10000)
+
+println(largestSafe)
