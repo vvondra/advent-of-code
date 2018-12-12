@@ -51,18 +51,13 @@ val biggestUnsafe = coords
         case (x, y) => (x == 0 || y == 0 || x == bottomRight._1 - topLeft._1 || y == bottomRight._2 - topLeft._2) && map(x)(y).closest == c.index
       }
     })
-    .map(c => {
-      mapNodes.count {
-        case (x, y) => map(x)(y).closest == c.index
-      }
-    })
+    .map(c => mapNodes.count { case (x, y) => map(x)(y).closest == c.index} )
     .max
 
 println(biggestUnsafe)
 
 val largestSafe = mapNodes
-  .map {
-    case (x, y) => map(x)(y).distances.values.sum
-  }.count(_ < 10000)
+  .map { case (x, y) => map(x)(y).distances.values.sum }
+  .count(_ < 10000)
 
 println(largestSafe)
