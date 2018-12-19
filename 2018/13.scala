@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 
 type Grid = List[List[Char]]
@@ -13,7 +14,8 @@ val Directions = Map(
   '>' -> Right,
   'v' -> Down
 )
-case class Cart(x: Int, y: Int, orientation: Int, turnState: Int, dead: Boolean = false) extends Ordered[Cart] {
+
+case class Cart(x: Int, y: Int, orientation: Int, turnState: Int) extends Ordered[Cart] {
   import scala.math.Ordered.orderingToOrdered // so I can compare tuples on the line below
 
   override def compare(that: Cart): Int = (x, y) compare (that.x, that.y)
@@ -28,7 +30,8 @@ case class Cart(x: Int, y: Int, orientation: Int, turnState: Int, dead: Boolean 
     }
 
     val next = cells(dest._1)(dest._2) match {
-      case '+' => Cart(dest._1, dest._2, Math.floorMod(orientation + turnState, 4), nextTurnState, dead)
+      // Careful that Scala % won't handle negative numbers
+      case '+' => Cart(dest._1, dest._2, Math.floorMod(orientation + turnState, 4), nextTurnState)
       case '/' => Cart(
         dest._1,
         dest._2,
@@ -38,8 +41,7 @@ case class Cart(x: Int, y: Int, orientation: Int, turnState: Int, dead: Boolean 
           case Down => Left
           case Right => Up
         },
-        turnState,
-        dead
+        turnState
       )
       case '\\' => Cart(
         dest._1,
@@ -51,9 +53,8 @@ case class Cart(x: Int, y: Int, orientation: Int, turnState: Int, dead: Boolean 
           case Right => Down
         },
         turnState,
-        dead
       )
-      case _ => Cart(dest._1, dest._2, orientation, turnState, dead)
+      case _ => Cart(dest._1, dest._2, orientation, turnState)
     }
 
     next
@@ -64,13 +65,10 @@ case class Cart(x: Int, y: Int, orientation: Int, turnState: Int, dead: Boolean 
     case 0 => -1
     case -1 => 1
   }
-
-  def crash = copy(dead = true)
 }
 
 def detectCrash(carts: Seq[Cart]): Option[(Int, Int)] = {
   carts
-    .filterNot(_.dead)
     .groupBy(c => (c.y, c.x))
     .filter(c => c._2.length > 1)
     .keys
@@ -88,10 +86,12 @@ val carts =
 
 
 def moveUntilCrash(carts: Seq[Cart]): (Int, Int) = {
+  @tailrec
   def tick(movedCarts: Seq[Cart]): Seq[Cart] = {
     val cartsAfterTick = movedCarts.zipWithIndex.foldLeft((movedCarts, false)) {
       case ((cartsInTick, crashed), (cart, index)) =>
         if (crashed) {
+          // In case a crash happened this tick, we don't move any other cart
           (cartsInTick, true)
         } else {
           val updatedCart = cartsInTick.updated(index, cart.next(cells))
@@ -112,9 +112,16 @@ def moveUntilCrash(carts: Seq[Cart]): (Int, Int) = {
 println(moveUntilCrash(carts))
 
 def lastCartAfterCrashes(carts: Seq[Cart]): (Int, Int) = {
+  @tailrec
   def tick(movedCarts: Seq[Cart]): Seq[Cart] = {
+
+    // Another level of recursion is used to process the list of carts to tick
+    // The approach from Task A can't be used since the list of carts changes
+    // during the tick evaluation
+    @tailrec
     def tickCart(cartsToTick: Queue[Cart], tickedCarts: Seq[Cart]): Seq[Cart] = {
       if (cartsToTick.isEmpty) {
+        // We've processed all carts in this tick
         tickedCarts
       } else {
         val (head, tail) = cartsToTick.dequeue
@@ -122,6 +129,7 @@ def lastCartAfterCrashes(carts: Seq[Cart]): (Int, Int) = {
         val newTickedCarts = movedCart +: tickedCarts
         val crash = detectCrash(tail ++ newTickedCarts)
         if (crash.isDefined) {
+          // Remove the crashes from ticked and to tick
           val filter = (c: Cart) => c.x == movedCart.x && c.y == movedCart.y
           tickCart(tail.filterNot(filter), newTickedCarts.filterNot(filter))
         } else {
@@ -132,14 +140,15 @@ def lastCartAfterCrashes(carts: Seq[Cart]): (Int, Int) = {
 
     val cartsAfterTick = tickCart(Queue(movedCarts: _*), Seq.empty)
 
-    if (cartsAfterTick.filterNot(_.dead).length == 1) {
+    // Only one cart left
+    if (cartsAfterTick.length == 1) {
       cartsAfterTick
     } else {
       tick(cartsAfterTick.sorted)
     }
   }
 
-  val last = tick(carts.sorted).filterNot(_.dead).head
+  val last = tick(carts.sorted).head
   (last.y, last.x)
 }
 

@@ -18,6 +18,11 @@ val start = first
 
 lazy val scoreboard: Stream[Recipe] = start #:: scoreboard.map(_.next)
 
+// Super lazy and hacky approach by pregenerating a lot of recipes and
+// hoping the subsequence from part B will appear in the sequence
+// A proper solution would be to create a lazily evaluated stream
+// Unfortunately there's a lot of reference reconnecting which doesn't
+// work that easily in immutable code
 for (_ <- 1 to 50 * input) {
   val sum = first.value + second.value
   val digit = sum % 10

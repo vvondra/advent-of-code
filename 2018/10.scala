@@ -33,7 +33,7 @@ do {
   sky = move(sky)
 } while (sky.count(p => (100 to 200).contains(p.px) && (160 to 220).contains(p.py)) < 10)
 
-
+// Watch carefully :)
 (1 to 100).foreach(_ => {
   println(i)
   printSky(sky)

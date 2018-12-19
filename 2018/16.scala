@@ -1,12 +1,15 @@
-case class Instruction(code: Opcode, a: Int, b: Int, c: Int)
+import scala.annotation.tailrec
 
-type Opcode = Int
-type Memory = Vector[Opcode]
+case class Instruction(code: OpCode, a: Int, b: Int, c: Int)
+
+type OpCode = Int
+type OpName = String
+type Memory = Vector[OpCode]
 type Op = (Instruction, Memory) => Memory
 
 case class Sample(before: Memory, ins: Instruction, after: Memory)
 
-val ops = Map[String, Op](
+val ops = Map[OpName, Op](
   "addr" -> ((i, m) => m.updated(i.c, m(i.a) + m(i.b))),
   "addi" -> ((i, m) => m.updated(i.c, m(i.a) + i.b)),
   "mulr" -> ((i, m) => m.updated(i.c, m(i.a) * m(i.b))),
@@ -52,8 +55,8 @@ val resultA = samples.count(sample => {
 
 println(resultA)
 
+// Extension of task A, prefilter possible assignments of codes to names
 val possible = ops.map { case (k, _) => k -> (0 to 15).toList }
-
 val valid = samples.foldLeft(possible) {
   case (p, sample) =>
     p.map { case (opName, opCodes) =>
@@ -61,10 +64,14 @@ val valid = samples.foldLeft(possible) {
     }
 }
 
-def figureOut(possible: Map[String, List[Opcode]]): Map[Opcode, String] = {
-  def recurse(deduced: Map[String, List[Opcode]]): Map[String, List[Opcode]] = {
+def assignCodes(possible: Map[OpName, List[OpCode]]): Map[OpCode, OpName] = {
+  // Always take the operation with an only possible opcode and remove it from others
+  // The input is built so this clearly results in a bijection
+  @tailrec
+  def recurse(deduced: Map[OpName, List[OpCode]]): Map[OpName, List[OpCode]] = {
     val single = deduced.filter(_._2.size == 1)
     val singleVals = single.values.toSeq.flatten
+    // Once each operation has one opcode assigned, we terminate recursion
     if (single.size == deduced.size) {
       deduced
     } else {
@@ -81,7 +88,7 @@ def figureOut(possible: Map[String, List[Opcode]]): Map[Opcode, String] = {
   recurse(possible).mapValues(_.head).map(_.swap)
 }
 
-val opMapping = figureOut(valid)
+val opMapping = assignCodes(valid)
 
 val resultB = test.foldLeft(Vector(0, 0, 0, 0))((registers, instruction) => ops(opMapping(instruction.code))(instruction, registers))
 println(resultB)
