@@ -1,25 +1,27 @@
+import scala.collection.immutable.Queue
+
 val seq = io.Source.stdin.mkString.trim.split(' ').map(_.toInt)
 
 case class Node(metadata: Seq[Int], children: Node*)
 
 def buildTree(seq: Seq[Int]): Node = {
-  def recurse(seq: Seq[Int], offset: Int): (Node, Int) = {
-    val numChildren = seq.head
-    val metadataCount = seq(1)
+  def recurse(seq: Queue[Int]): (Node, Queue[Int]) = {
+    val (numChildren, seq2) = seq.dequeue
+    val (metadataCount, seqChildren) = seq2.dequeue
     if (numChildren == 0) {
-      (Node(seq.slice(2, metadataCount + 2)), 2 + metadataCount)
+      (Node(seqChildren.take(metadataCount)), seqChildren.drop(metadataCount))
     } else {
-      val (children: List[Node], lastOffset: Int) = (1 to numChildren).foldLeft((List.empty[Node], 2)) {
-        case ((list, nextOffset), _) =>
-          val (child, length) = recurse(seq.drop(nextOffset), nextOffset)
-          (list :+ child, nextOffset + length)
+      val (children: List[Node], tailSeq: Queue[Int]) = (1 to numChildren).foldLeft((List.empty[Node], seqChildren)) {
+        case ((list, subSeq), _) =>
+          val (child, restSeq) = recurse(subSeq)
+          (list :+ child, restSeq)
       }
 
-      (Node(seq.slice(lastOffset, lastOffset + metadataCount), children: _*), lastOffset + metadataCount)
+      (Node(tailSeq.take(metadataCount), children: _*), tailSeq.drop(metadataCount))
     }
   }
 
-  recurse(seq, 0)._1
+  recurse(Queue(seq: _*))._1
 }
 
 def printTree(node: Node): Unit = {
