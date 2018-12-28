@@ -51,23 +51,16 @@ val groups = io.Source.stdin.mkString
 
 def chooseTargets(attackers: Set[Group], defenders: Set[Group]): Map[Int, Int] = {
   attackers.toSeq
-    .sortWith { (a, b) => {
-      if (a.effectivePower == b.effectivePower) a.initiative > b.initiative else a.effectivePower > b.effectivePower
-    }
-    }
+    .sortBy(a => (a.effectivePower, a.initiative))
+    .reverse
     .foldLeft((Map.empty[Int, Int], defenders)) {
       case ((assignments, targets), attacker) => if (targets.isEmpty) {
         (assignments, targets)
       } else {
         targets.toSeq
           .filter(attacker.damageDealt(_) > 0)
-          .sortWith { (a, b) =>
-            if (attacker.damageDealt(a) == attacker.damageDealt(b)) {
-              if (a.effectivePower == b.effectivePower) {
-                a.initiative > b.initiative
-              } else a.effectivePower > b.effectivePower
-            } else attacker.damageDealt(a) > attacker.damageDealt(b)
-          }
+          .sortBy(g => (attacker.damageDealt(g), g.effectivePower, g.initiative))
+          .reverse
           .headOption match {
             case Some(target) => (assignments + (attacker.index -> target.index), targets - target)
             case None => (assignments, targets)
@@ -124,7 +117,6 @@ def combat(armies: Armies): Armies = {
 def winningUnits(armies: Armies) = armies.values.map(_.units).sum
 def winningSide(armies: Armies) = armies.values.head.side
 
-println(groups)
 val afterCombat = combat(groups)
 println(winningUnits(afterCombat))
 println(winningSide(afterCombat))
@@ -138,10 +130,8 @@ def boosted(armies: Armies, boost: Int) = armies.mapValues {
 var withBoost = groups
 var boost = 1
 while (winningSide(combat(withBoost)) == Infection) {
-  println(boost)
   withBoost = boosted(groups, boost)
   boost = boost + 1
 }
 
-println(boost)
 println(winningUnits(combat(withBoost)))
