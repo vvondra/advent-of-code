@@ -94,19 +94,7 @@ def adjacentEnemy(c: Coord, target: Race, dungeon: Dungeon): Option[Coord]
       }
     }
     .map { case (xy, cell) => (xy, cell.asInstanceOf[Warrior]) }
-    .sortWith {
-      // Implement tie breakers
-      case (((ax, ay), a), ((bx, by), b)) =>
-        if (a.hp == b.hp) {
-          if (ax == bx) {
-            ay < by
-          } else {
-            ax < bx
-          }
-        } else {
-          a.hp < b.hp
-        }
-    }
+    .sortBy { case ((x, y), w) => (w.hp, x, y) }
     .headOption
     .map { case (coords, _) => Coord.tupled(coords) }
 
