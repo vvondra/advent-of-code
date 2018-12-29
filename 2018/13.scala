@@ -52,7 +52,7 @@ case class Cart(x: Int, y: Int, orientation: Int, turnState: Int) extends Ordere
           case Down => Right
           case Right => Down
         },
-        turnState,
+        turnState
       )
       case _ => Cart(dest._1, dest._2, orientation, turnState)
     }

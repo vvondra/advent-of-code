@@ -44,7 +44,7 @@ val events = io.Source.stdin.getLines
 val aggregated = events.groupBy(_.guardId)
   .map {
     case (guardId, guardEvents) =>
-      val totalSlept = guardEvents.foldLeft((Option.empty[Event], 0l, List.fill[Int](60)(0))) {
+      val totalSlept = guardEvents.foldLeft((Option.empty[Event], 0l, List.fill(60)(0))) {
         case ((previousEvent, slept, minutes), event) =>
           event match {
             case Event(_, wakeupTime, _, Wakeup) =>

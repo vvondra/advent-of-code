@@ -88,10 +88,8 @@ def adjacentEnemy(c: Coord, target: Race, dungeon: Dungeon): Option[Coord]
   = ReadingOrder
     .map { case (dx, dy) => ((c.x + dx, c.y + dy), dungeon(c.x + dx)(c.y + dy))}
     .filter {
-      case (_, cell) => cell match {
-        case Warrior(race, _, _) => race == target
-        case _ => false
-      }
+      case (_, Warrior(race, _, _)) => race == target
+      case _ => false
     }
     .map { case (xy, cell) => (xy, cell.asInstanceOf[Warrior]) }
     .sortBy { case ((x, y), w) => (w.hp, x, y) }
