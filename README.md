@@ -1,5 +1,9 @@
 # advent-of-code
 
+## 2019
+
+[productboard](https://www.productboard.com/) is a big fan of Typescript, so that made this year's choice quite easy!
+
 ## 2018
 
 This time all in Scala.
