@@ -7,7 +7,7 @@ const input = fs.readFileSync('2.input', 'utf-8')
 
 const execute = (prev: Array<number>, position: number) => {
   const [op, a, b, out] = prev.slice(position);
-  console.log(out)
+
   switch (op) {
     case 1:
       return Object.assign([], prev, { [out]: prev[a] + prev[b] });
@@ -22,7 +22,7 @@ const execute = (prev: Array<number>, position: number) => {
 
 const run = (program: Array<number>) => {
   let ip = 0;
-  let state = input.slice(0);
+  let state = program.slice(0);
   const step = 4;
   while (state[ip] != 99) {
     state = execute(state, ip);
@@ -32,10 +32,17 @@ const run = (program: Array<number>) => {
   return state;
 }
 
-
-console.log(input)
-console.log(Object.assign([], input, { 1: 12, 2: 2 }));
+const findInputs = (program: Array<number>, target: number) => {
+  for (let noun = 0; noun < 100; noun++) {
+    for (let verb = 0; verb < 100; verb++) {
+      if (run(Object.assign([], input, { 1: noun, 2: verb }))[0] == target) {
+        return 100 * noun + verb;
+      }
+    }
+  }
+}
 
 const assisted = run(Object.assign([], input, { 1: 12, 2: 2 }));
-//console.log(assisted[0]);
+console.log(assisted[0]);
+console.log(findInputs(input, 19690720));
 
