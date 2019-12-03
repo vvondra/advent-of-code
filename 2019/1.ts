@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as rd from 'readline'
 
-const reader = rd.createInterface(fs.createReadStream("./1.input"));
+const reader = rd.createInterface(fs.createReadStream("1.input"));
 
 const calculateFuel = (n: number) => Math.trunc(n / 3) - 2;
 const addFuel = function* (base: number): Generator<number> {
