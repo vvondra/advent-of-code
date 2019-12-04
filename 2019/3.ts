@@ -1,8 +1,8 @@
-import * as fs from 'fs';
-import * as rd from 'readline'
+import * as fs from "fs";
+import * as rd from "readline";
 
-type Coord = { x: number, y: number }
-type Instruction = [string, number]
+type Coord = { x: number; y: number; };
+type Instruction = [string, number];
 class Segment {
   a: Coord;
   b: Coord;
@@ -36,7 +36,7 @@ class Segment {
 
   // All lines perpendicular on the plane, this returns the constant dimension
   axis() {
-    if (this.a.x == this.b.x) {
+    if (this.a.x === this.b.x) {
       return {x: this.a.x};
     } else {
       return {y: this.b.y};
@@ -58,12 +58,12 @@ const parse = (reader: rd.Interface): Promise<Segment[][]> => {
   return new Promise((resolve, reject) => {
     reader
       .on("line", (line) => {
-        const points: [string, number][] = line
+        const points: Array<[string, number]> = line
             .split(",")
             .map(s => s.trim())
-            .map(s => [s.substring(0, 1), parseInt(s.substring(1), 10)])
+            .map(s => [s.substring(0, 1), parseInt(s.substring(1), 10)]);
 
-        const segments = points.reduce((acc: [Coord, number, Segment[]], next: Instruction) => {
+        const newSegments = points.reduce((acc: [Coord, number, Segment[]], next: Instruction) => {
           const [last, distanceToHere, segments] = acc;
 
           let nextLast: Coord;
@@ -85,15 +85,14 @@ const parse = (reader: rd.Interface): Promise<Segment[][]> => {
           }
           segments.push(new Segment(last, nextLast, distanceToHere));
 
-          return [nextLast, distanceToHere + next[1], segments];
+          return [nextLast, distanceToHere + next[1], newSegments];
         }, [{x: 0, y: 0}, 0, []])[2];
 
         lines.push(segments);
       })
-      .on("close", () => resolve(lines))
+      .on("close", () => resolve(lines));
   });
-}
-
+};
 
 parse(rd.createInterface(fs.createReadStream("3.input")))
   .then(lines => {
@@ -113,9 +112,9 @@ parse(rd.createInterface(fs.createReadStream("3.input")))
             minSignal = signal;
           }
         }
-      })
-    })
+      });
+    });
 
-    console.log(minDistance)
-    console.log(minSignal)
-  })
+    console.log(minDistance);
+    console.log(minSignal);
+  });

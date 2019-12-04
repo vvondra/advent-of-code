@@ -1,21 +1,21 @@
-import * as fs from 'fs';
-import * as rd from 'readline'
+import * as fs from "fs";
+import * as rd from "readline";
 
 const reader = rd.createInterface(fs.createReadStream("1.input"));
 
 const calculateFuel = (n: number) => Math.trunc(n / 3) - 2;
-const addFuel = function* (base: number): Generator<number> {
+const addFuel = function*(base: number): Generator<number> {
   let last = calculateFuel(base);
   while (last > 0) {
     yield last;
     last = calculateFuel(last);
   }
-}
+};
 
-const modules: Array<number> = [];
+const modules: number[] = [];
 reader
   .on("line", (input: string) => {
-    modules.push(parseInt(input))
+    modules.push(parseInt(input, 10));
   })
   .on("close", () => {
     const takeoffFuel = modules
@@ -30,5 +30,5 @@ reader
       .flat()
       .reduce((sum, n) => sum + n, 0);
 
-    console.log(takeoffFuelWithExtra)
+    console.log(takeoffFuelWithExtra);
   });
