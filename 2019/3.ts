@@ -88,7 +88,7 @@ const parse = (reader: rd.Interface): Promise<Segment[][]> => {
           return [nextLast, distanceToHere + next[1], newSegments];
         }, [{x: 0, y: 0}, 0, []])[2];
 
-        lines.push(segments);
+        lines.push(newSegments);
       })
       .on("close", () => resolve(lines));
   });
