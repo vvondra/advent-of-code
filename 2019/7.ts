@@ -135,17 +135,6 @@ class Program {
   }
 }
 
-const runAmplifier = async (program: number[], inputs: number[]) => {
-  let ip = 0;
-  let state = program.slice(0);
-  const outputs = [];
-  while (state[ip] !== 99) {
-    [state, ip] = await (new Op(state, ip).execute(state, inputs, outputs));
-  }
-
-  return [state, outputs];
-};
-
 const runAmplifiers = async (program: number[], phases: number[]): Promise<number> => {
   const feed = 0;
   const amplifiers: Program[] = [];
@@ -173,17 +162,7 @@ const runAmplifiers = async (program: number[], phases: number[]): Promise<numbe
   return lastOutput;
 };
 
-const runAmplifiersWithoutLoop = async (program: number[], phases: number[]): Promise<number> => {
-  let feed = 0;
-  for (let phase of phases) {
-    const result = await runAmplifier(program, [phase, feed]);
-    feed = result[1][0];
-  }
-
-  return feed;
-};
-
-const permutations = <T>(xs: T[]): T[] => {
+const permutations = <T>(xs: T[]): T[][] => {
   const ret = [];
 
   for (let i = 0; i < xs.length; i = i + 1) {
@@ -192,7 +171,7 @@ const permutations = <T>(xs: T[]): T[] => {
     if (!rest.length) {
       ret.push([xs[i]]);
     } else {
-      for (let r of rest) {
+      for (const r of rest) {
         ret.push([xs[i]].concat(r));
       }
     }
@@ -201,16 +180,13 @@ const permutations = <T>(xs: T[]): T[] => {
   return ret;
 };
 
-Promise
-  .all(permutations([0, 1, 2, 3, 4])
-  .map(p => runAmplifiersWithoutLoop(input, p)))
-  .then(values => {
-    console.log(Math.max(...values));
-  });
+const findMaxSignal = async (phases: number[], program: number[]) => {
+  return Promise.all(
+    permutations(phases)
+      .map(p => runAmplifiers(program, p)))
+      .then(values => Math.max(...values),
+  );
+};
 
-Promise
-  .all(permutations([5, 6, 7, 8, 9])
-  .map(p => runAmplifiers(input, p)))
-  .then(values => {
-    console.log(Math.max(...values));
-  });
+findMaxSignal([0, 1, 2, 3, 4], input).then(console.log);
+findMaxSignal([5, 6, 7, 8, 9], input).then(console.log);
