@@ -113,17 +113,23 @@ class Program {
   state: number[];
   ip = 0;
   inputs: number[];
+  process: AsyncGenerator<number>;
 
   constructor(program: number[], inputs: number[]) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
+    this.process = this.run();
   }
 
   addInput(i: number) {
     this.inputs.push(i);
   }
 
-  async * nextOutput(): AsyncGenerator<number> {
+  async next(): Promise<IteratorResult<number, any>> {
+    return this.process.next();
+  }
+
+  private async * run(): AsyncGenerator<number> {
     while (this.state[this.ip] !== 99) {
       const outputs = [];
       [this.state, this.ip] = await (new Op(this.state, this.ip).execute(this.state, this.inputs, outputs));
@@ -138,20 +144,18 @@ class Program {
 const runAmplifiers = async (program: number[], phases: number[]): Promise<number> => {
   const feed = 0;
   const amplifiers: Program[] = [];
-  const instances: AsyncGenerator[] = [];
   for (let i = 0; i < phases.length; i++) {
     amplifiers[i] = new Program(program, [phases[i]]);
-    instances[i] = amplifiers[i].nextOutput();
   }
   amplifiers[0].addInput(0);
 
   let current = 0;
-  let lastOutput: number = (await instances[current].next()).value;
+  let lastOutput: number = (await amplifiers[current].next()).value;
 
   while (true) {
     current = (current + 1) % phases.length;
     amplifiers[current].addInput(lastOutput);
-    const output = (await instances[current].next());
+    const output = await amplifiers[current].next();
     if (output.done) {
       break;
     }
