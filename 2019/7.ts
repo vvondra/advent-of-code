@@ -109,10 +109,36 @@ class Op {
   }
 }
 
+class Program {
+  state: number[];
+  ip = 0;
+  inputs: number[];
+
+  constructor(program: number[], inputs: number[]) {
+    this.state = program.slice(0);
+    this.inputs = inputs.slice(0);
+  }
+
+  addInput(i: number) {
+    this.inputs.push(i);
+  }
+
+  async * nextOutput(): AsyncGenerator<number> {
+    while (this.state[this.ip] !== 99) {
+      const outputs = [];
+      [this.state, this.ip] = await (new Op(this.state, this.ip).execute(this.state, this.inputs, outputs));
+
+      while (outputs.length > 0) {
+        yield outputs.shift();
+      }
+    }
+  }
+}
+
 const runAmplifier = async (program: number[], inputs: number[]) => {
   let ip = 0;
   let state = program.slice(0);
-  let outputs = [];
+  const outputs = [];
   while (state[ip] !== 99) {
     [state, ip] = await (new Op(state, ip).execute(state, inputs, outputs));
   }
@@ -120,35 +146,71 @@ const runAmplifier = async (program: number[], inputs: number[]) => {
   return [state, outputs];
 };
 
-const runAmplifiers = async(program: number[], phases: number[]): Promise<number> => {
-  let feed = 0;
+const runAmplifiers = async (program: number[], phases: number[]): Promise<number> => {
+  const feed = 0;
+  const amplifiers: Program[] = [];
+  const instances: AsyncGenerator[] = [];
   for (let i = 0; i < phases.length; i++) {
-    let result = await runAmplifier(program, [phases[i], feed]);
+    amplifiers[i] = new Program(program, [phases[i]]);
+    instances[i] = amplifiers[i].nextOutput();
+  }
+  amplifiers[0].addInput(0);
+
+  let current = 0;
+  let lastOutput: number = (await instances[current].next()).value;
+
+  while (true) {
+    current = (current + 1) % phases.length;
+    amplifiers[current].addInput(lastOutput);
+    const output = (await instances[current].next());
+    if (output.done) {
+      break;
+    }
+
+    lastOutput = output.value;
+  }
+
+  return lastOutput;
+};
+
+const runAmplifiersWithoutLoop = async (program: number[], phases: number[]): Promise<number> => {
+  let feed = 0;
+  for (let phase of phases) {
+    const result = await runAmplifier(program, [phase, feed]);
     feed = result[1][0];
   }
 
   return feed;
-}
-const permutations = (xs) => {
-  let ret = [];
+};
+
+const permutations = <T>(xs: T[]): T[] => {
+  const ret = [];
 
   for (let i = 0; i < xs.length; i = i + 1) {
-    let rest = permutations(xs.slice(0, i).concat(xs.slice(i + 1)));
+    const rest = permutations(xs.slice(0, i).concat(xs.slice(i + 1)));
 
     if (!rest.length) {
-      ret.push([xs[i]])
+      ret.push([xs[i]]);
     } else {
-      for (let j = 0; j < rest.length; j = j + 1) {
-        ret.push([xs[i]].concat(rest[j]))
+      for (let r of rest) {
+        ret.push([xs[i]].concat(r));
       }
     }
   }
+
   return ret;
-}
+};
 
 Promise
-  .all(permutations([0, 1, 2, 3, 4]).map(p => runAmplifiers(input, p)))
+  .all(permutations([0, 1, 2, 3, 4])
+  .map(p => runAmplifiersWithoutLoop(input, p)))
   .then(values => {
     console.log(Math.max(...values));
-  })
+  });
 
+Promise
+  .all(permutations([5, 6, 7, 8, 9])
+  .map(p => runAmplifiers(input, p)))
+  .then(values => {
+    console.log(Math.max(...values));
+  });
