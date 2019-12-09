@@ -6,26 +6,31 @@ const input = fs.readFileSync("9.input", "utf-8")
   .map(BigInt);
 
 type OpResult = {
-  state: bigint[],
+  state: Array<bigint>,
   ip: number,
-  rp: number
+  rp: number,
+};
+
+enum Mode {
+  Position = 0,
+  Immediate = 1,
+  Relative = 2,
 }
 
 class Op {
   op: number;
   ip: number;
   rp: number;
-  params: bigint[];
+  params: Array<bigint>;
   modes: number[];
 
-  constructor(prev: bigint[], ip: number, rp: number) {
+  constructor(prev: Array<bigint>, ip: number, rp: number) {
     const code = prev[ip];
     this.ip = ip;
     this.rp = rp;
     this.op = Number(code) % 100;
     this.modes = Math.trunc(Number(code) / 100).toString().split("").map(Number).reverse();
     this.params = prev.slice(ip + 1, ip + 1 + this.paramCount());
-    console.log(this.params, code, ip, prev);
   }
 
   paramCount() {
@@ -43,15 +48,21 @@ class Op {
     }[this.op];
   }
 
-  value(position: number, state: bigint[]) {
-    const mode = this.modes[position] || 0;
+  value(position: number, state: Array<bigint>, writeMode = false): bigint {
+    const mode = this.modes[position] || Mode.Position;
 
-    if (mode === 0) {
-      return state[Number(this.params[position])];
-    } else if (mode === 1) {
+    if (mode === Mode.Position) {
+      if (writeMode) {
+        return this.params[position];
+      }
+      return state[Number(this.params[position])] || BigInt(0);
+    } else if (mode === Mode.Immediate) {
       return this.params[position];
-    } else if (mode === 2) {
-      return state[Number(this.params[position]) + this.rp];
+    } else if (mode === Mode.Relative) {
+      if (writeMode) {
+        return this.params[position] + BigInt(this.rp);
+      }
+      return state[Number(this.params[position]) + this.rp] || BigInt(0);
     }
   }
 
@@ -59,46 +70,52 @@ class Op {
     return this.ip + this.paramCount() + 1;
   }
 
-  async execute(state: bigint[], inputs: bigint[], outputs: bigint[]): Promise<OpResult> {
+  async execute(state: Array<bigint>, inputs: Array<bigint>, outputs: Array<bigint>): Promise<OpResult> {
+    const updated = (memory: Array<bigint>, idx: bigint | number, value: bigint | number): Array<bigint> => {
+      const copy = memory.slice();
+      copy[Number(this.value(Number(idx), copy, true))] = BigInt(value);
+
+      return copy;
+    };
+
     return new Promise((resolve, reject) => {
       const result = {
-        state: state,
+        state,
         ip: this.nextStep(),
-        rp: this.rp
-      }
+        rp: this.rp,
+      };
 
       switch (this.op) {
         case 1:
-          console.log("a", this.value(0, state), this.value(1, state))
-          result.state = Object.assign([], state, { [Number(this.value(2, state))]: this.value(0, state) + this.value(1, state) });
+          resolve({ ...result, state: updated(state, 2, this.value(0, state) + this.value(1, state))});
           break;
         case 2:
-          result.state = Object.assign([], state, { [Number(this.value(2, state))]: this.value(0, state) * this.value(1, state) });
+          result.state = updated(state, 2, this.value(0, state) * this.value(1, state));
           break;
         case 3:
-          result.state = Object.assign([], state, { [Number(this.value(0, state))]: inputs.shift() });
+          result.state = updated(state, 0, inputs.shift());
           break;
         case 4:
           outputs.push(this.value(0, state));
           break;
         case 5:
           if (this.value(0, state) !== BigInt(0)) {
-            result.ip = this.value(1, state);
+            result.ip = Number(this.value(1, state));
           }
           break;
         case 6:
           if (this.value(0, state) === BigInt(0)) {
-            result.ip = this.value(1, state);
+            result.ip = Number(this.value(1, state));
           }
           break;
         case 7:
-          result.state = Object.assign([], state, { [Number(this.value(2, state))]: (this.value(0, state) < this.value(1, state) ? 1 : 0) });
+          result.state = updated(state, 2, this.value(0, state) < this.value(1, state) ? 1 : 0);
           break;
         case 8:
-          result.state = Object.assign([], state, { [Number(this.value(2, state))]: (this.value(0, state) === this.value(1, state) ? 1 : 0) });
+          result.state = updated(state, 2, this.value(0, state) === this.value(1, state) ? 1 : 0);
           break;
         case 9:
-          result.rp = this.rp + Number(this.value(0, state));
+          result.rp = result.rp + Number(this.value(0, state));
           break;
         case 99:
           result.ip = this.ip;
@@ -114,13 +131,13 @@ class Op {
 }
 
 class Program {
-  state: bigint[];
+  state: Array<bigint>;
   ip = 0;
   rp = 0;
-  inputs: bigint[];
+  inputs: Array<bigint>;
   process: AsyncGenerator<bigint>;
 
-  constructor(program: bigint[], inputs: bigint[]) {
+  constructor(program: Array<bigint>, inputs: Array<bigint>) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
     this.process = this.run();
@@ -150,9 +167,14 @@ class Program {
 }
 
 const p = new Program(input, [BigInt(1)]);
+const p2 = new Program(input, [BigInt(2)]);
 
 (async () => {
-  for await (let value of p.process) {
-    console.log(value);
+  for await (const value of p.process) {
+    console.log(value.toString());
+  }
+
+  for await (const value of p2.process) {
+    console.log(value.toString());
   }
 })();
