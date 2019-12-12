@@ -49,10 +49,10 @@ for (let i = 0; i < 10000000; i++) {
         potential += Math.abs(stars[star][coord]);
         kinetic += Math.abs(velocities[star][coord]);
       }
-    
+
       energy += potential * kinetic;
     }
-    
+
     console.log(energy);
   }
 
