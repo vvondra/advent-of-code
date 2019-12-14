@@ -43,5 +43,6 @@ const findInputs = (program: number[], target: number) => {
 };
 
 const assisted = run(Object.assign([], input, { 1: 12, 2: 2 }));
+
 console.log(assisted[0]);
 console.log(findInputs(input, 19690720));
