@@ -13,6 +13,7 @@ const addFuel = function*(base: number): Generator<number> {
 };
 
 const modules: number[] = [];
+
 reader
   .on("line", (input: string) => {
     modules.push(parseInt(input, 10));
