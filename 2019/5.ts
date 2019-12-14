@@ -11,10 +11,10 @@ const second = new Program(input, [5]);
 
 (async () => {
   for await (const out of first.process) {
-    console.log(out.toString());
+    console.log(out);
   }
 
   for await (const out of second.process) {
-    console.log(out.toString());
+    console.log(out);
   }
 })();
