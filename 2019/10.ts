@@ -56,7 +56,7 @@ const max = Array.from(asteroids)
       return next;
     }
     return prev;
-  }, ["x", -Infinity]);
+  }, ["X", -Infinity]);
 
 console.log(max);
 const station = (max as [string, number])[0];
