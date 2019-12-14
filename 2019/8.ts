@@ -3,7 +3,6 @@ import * as fs from "fs";
 const input = fs.readFileSync("8.input", "utf-8");
 const width = 25;
 const height = 6;
-
 const layerStrings = input.match(new RegExp(".{" + (width * height) + "}", "g"));
 
 const leastZeros = layerStrings.reduce((prev: [string, number], next: string) => {
