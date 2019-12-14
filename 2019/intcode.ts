@@ -64,7 +64,7 @@ class Op {
     return this.ip + this.paramCount() + 1;
   }
 
-  execute(state: Array<number>, inputs: Array<number>, outputs: Array<number>): OpResult {
+  async execute(state: Array<number>, inputs: () => Promise<number>, outputs: Array<number>): Promise<OpResult> {
     const updated = (memory: Array<number>, idx: number | number, value: number | number): Array<number> => {
       const copy = memory.slice();
       copy[this.value(idx, copy, true)] = value;
@@ -92,7 +92,7 @@ class Op {
       case 3:
         return {
           ...result,
-          state: updated(state, 0, inputs.shift())
+          state: updated(state, 0, await inputs())
         };
       case 4:
         outputs.push(this.value(0, state));
@@ -138,12 +138,14 @@ export default class Program {
   ip = 0;
   rp = 0;
   inputs: Array<number>;
-  process: Generator<number>;
+  inputFn: () => Promise<number>;
+  process: AsyncGenerator<number>;
 
   constructor(program: Array<number>, inputs: Array<number>) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
     this.process = this.run();
+    this.inputFn = () => Promise.resolve(this.inputs.shift());
   }
 
   addInput(i: number) {
@@ -154,10 +156,10 @@ export default class Program {
     return this.process.next();
   }
 
-  private * run(): Generator<number> {
+  private async * run(): AsyncGenerator<number> {
     while (this.state[this.ip] !== 99) {
       const outputs = [];
-      const result = (new Op(this.state, this.ip, this.rp).execute(this.state, this.inputs, outputs));
+      const result = await (new Op(this.state, this.ip, this.rp).execute(this.state, this.inputFn, outputs));
       this.ip = result.ip;
       this.rp = result.rp;
       this.state = result.state;
