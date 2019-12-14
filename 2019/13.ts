@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import Program from "./intcode";
 import * as readline from "readline";
-import { SSL_OP_EPHEMERAL_RSA } from "constants";
 
 const input = fs.readFileSync("13.input", "utf-8")
   .split(",")
@@ -19,9 +18,7 @@ enum Tile {
   Ball = 4
 }
 
-const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const render = (game: Tile[][], score: number, other = "") => {
   const format = (t: Tile) => {
@@ -53,7 +50,6 @@ const render = (game: Tile[][], score: number, other = "") => {
   const grid: Tile[][] = [];
   let score = 0;
   const counter = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
-  let ballLast = [0, 0];
   let ball = [0, 0];
   let paddle = [0, 0];
   const set = (x: number, y: number, z: number) => {
@@ -62,7 +58,6 @@ const render = (game: Tile[][], score: number, other = "") => {
     }
 
     if (z === Tile.Ball) {
-      ballLast = ball;
       ball = [x, y];
     }
     if (z === Tile.Paddle) {
