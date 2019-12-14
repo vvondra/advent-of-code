@@ -1,19 +1,19 @@
 import * as fs from "fs";
 
-type Coord = { x: number, y: number, z: number }
+type Coord = { x: number, y: number, z: number };
 
 const stars: Coord[] = fs.readFileSync("12.input", "utf-8")
   .trim()
   .split("\n")
   .map(s => {
-    const matches = [...s.matchAll(/([a-z])=(-?\d+)/g)]
+    const matches = [...s.matchAll(/([a-z])=(-?\d+)/g)];
 
     return matches.reduce((coord, match) => {
       return { ...coord, [match[1]]: parseInt(match[2], 10) };
     }, {}) as Coord;
   });
 
-const velocities = stars.map(x => { return { x: 0, y: 0, z: 0 } });
+const velocities = stars.map(x => ({ x: 0, y: 0, z: 0 }));
 
 let last = 0;
 for (let i = 0; i < 10000000; i++) {
@@ -57,7 +57,7 @@ for (let i = 0; i < 10000000; i++) {
   }
 
   if (stars[0].y === 2) {
-    console.log(i, i - last)
+    console.log(i, i - last);
     last = i;
   }
 
@@ -65,4 +65,3 @@ for (let i = 0; i < 10000000; i++) {
     console.log(i);
   }
 }
-

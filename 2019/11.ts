@@ -10,17 +10,17 @@ const mod = (a: number, b: number) => ((a % b) + b) % b;
 
 enum Color {
   Black = 0,
-  White = 1
+  White = 1,
 }
 
 type Coord = { x: number, y: number };
-enum Rotation { Up = 0, Right = 1, Down = 2, Left = 3 };
+enum Rotation { Up = 0, Right = 1, Down = 2, Left = 3 }
 const rotationMove = {
   [Rotation.Up]: (c: Coord) => { c.y++; return c; },
   [Rotation.Right]: (c: Coord) => { c.x++; return c; },
   [Rotation.Down]: (c: Coord) => { c.y--; return c; },
   [Rotation.Left]: (c: Coord) => { c.x--; return c; },
-}
+};
 
 const paint = async (start: Color) => {
   const painted = {};
@@ -40,22 +40,22 @@ const paint = async (start: Color) => {
       }
     } else {
       if (value === BigInt(0)) {
-        rotation = mod(rotation - 1, 4)
+        rotation = mod(rotation - 1, 4);
       } else if (value === BigInt(1)) {
         rotation = mod(rotation + 1, 4);
       } else {
         throw new Error("Unexpected rotation");
       }
-      rotationMove[rotation](coord)
+      rotationMove[rotation](coord);
 
-      robot.addInput(BigInt(painted[coord.x + ":" + coord.y] || Color.Black))
+      robot.addInput(BigInt(painted[coord.x + ":" + coord.y] || Color.Black));
     }
 
     colorMode = !colorMode;
   }
 
   return painted;
-}
+};
 
 paint(Color.Black).then(p => console.log(Object.keys(p).length));
 paint(Color.White).then(p => {
@@ -75,7 +75,7 @@ paint(Color.White).then(p => {
 
   for (let c = topBounds[1]; c >= bottomBounds[1]; c--) {
     for (let r = bottomBounds[0]; r < topBounds[0] + 1; r++) {
-        process.stdout.write((painting[c] && painting[c][r]) ? '▓' : ' ')
+        process.stdout.write((painting[c] && painting[c][r]) ? "▓" : " ");
     }
     process.stdout.write("\n");
   }

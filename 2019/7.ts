@@ -6,7 +6,7 @@ const input = fs.readFileSync("7.input", "utf-8")
   .map(s => s.trim())
   .map(BigInt);
 
-const runAmplifiers = async (program: bigint[], phases: bigint[]): Promise<bigint> => {
+const runAmplifiers = async (program: Array<bigint>, phases: Array<bigint>): Promise<bigint> => {
   const feed = 0;
   const amplifiers: Program[] = [];
   for (let i = 0; i < phases.length; i++) {
@@ -49,7 +49,7 @@ const permutations = <T>(xs: T[]): T[][] => {
   return ret;
 };
 
-const findMaxSignal = async (phases: bigint[], program: bigint[]) => {
+const findMaxSignal = async (phases: Array<bigint>, program: Array<bigint>) => {
   return Promise.all(permutations(phases).map(p => runAmplifiers(program, p)))
       .then(values => values.reduce((min, n) => n > min ? n : min, -Infinity));
 };
