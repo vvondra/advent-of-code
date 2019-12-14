@@ -3,9 +3,7 @@ import * as rd from "readline";
 
 const reader = rd.createInterface(fs.createReadStream("6.input"));
 
-const orbits = {
-  COM: null,
-};
+const orbits = { COM: null };
 
 reader
   .on("line", (input: string) => {
