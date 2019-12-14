@@ -62,15 +62,15 @@ const energy = (stars: Coord[], velocities: Coord[]) => {
 }
 
 function gcd(x: number, y: number) {
-  x = Math.abs(x);
-  y = Math.abs(y);
-  while (y) {
-    const t = y;
-    y = x % y;
-    x = t;
+  let ay = Math.abs(y);
+  let ax = Math.abs(x);
+  while (ay) {
+    const t = ay;
+    ay = ax % y;
+    ax = t;
   }
 
-  return x;
+  return ax;
 }
 
 const cycle = (initial: Coord[], coord: string): number => {

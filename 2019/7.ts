@@ -4,18 +4,18 @@ import Program from "./intcode";
 const input = fs.readFileSync("7.input", "utf-8")
   .split(",")
   .map(s => s.trim())
-  .map(BigInt);
+  .map(Number);
 
-const runAmplifiers = async (program: Array<bigint>, phases: Array<bigint>): Promise<bigint> => {
+const runAmplifiers = async (program: Array<number>, phases: Array<number>): Promise<number> => {
   const feed = 0;
   const amplifiers: Program[] = [];
   for (let i = 0; i < phases.length; i++) {
     amplifiers[i] = new Program(program, [phases[i]]);
   }
-  amplifiers[0].addInput(BigInt(0));
+  amplifiers[0].addInput(0);
 
   let current = 0;
-  let lastOutput: bigint = (await amplifiers[current].next()).value;
+  let lastOutput: number = (await amplifiers[current].next()).value;
 
   while (true) {
     current = (current + 1) % phases.length;
@@ -49,10 +49,10 @@ const permutations = <T>(xs: T[]): T[][] => {
   return ret;
 };
 
-const findMaxSignal = async (phases: Array<bigint>, program: Array<bigint>) => {
+const findMaxSignal = async (phases: Array<number>, program: Array<number>) => {
   return Promise.all(permutations(phases).map(p => runAmplifiers(program, p)))
       .then(values => values.reduce((min, n) => n > min ? n : min, -Infinity));
 };
 
-findMaxSignal([0, 1, 2, 3, 4].map(BigInt), input).then(v => console.log(v.toString()));
-findMaxSignal([5, 6, 7, 8, 9].map(BigInt), input).then(v => console.log(v.toString()));
+findMaxSignal([0, 1, 2, 3, 4], input).then(v => console.log(v.toString()));
+findMaxSignal([5, 6, 7, 8, 9], input).then(v => console.log(v.toString()));

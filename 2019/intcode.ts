@@ -1,6 +1,6 @@
 
 type OpResult = {
-  state: Array<bigint>,
+  state: Array<number>,
   ip: number,
   rp: number,
 };
@@ -15,15 +15,15 @@ class Op {
   op: number;
   ip: number;
   rp: number;
-  params: Array<bigint>;
+  params: Array<number>;
   modes: number[];
 
-  constructor(prev: Array<bigint>, ip: number, rp: number) {
+  constructor(prev: Array<number>, ip: number, rp: number) {
     const code = prev[ip];
     this.ip = ip;
     this.rp = rp;
-    this.op = Number(code) % 100;
-    this.modes = Math.trunc(Number(code) / 100).toString().split("").map(Number).reverse();
+    this.op = code % 100;
+    this.modes = Math.trunc(code / 100).toString().split("").map(Number).reverse();
     this.params = prev.slice(ip + 1, ip + 1 + this.paramCount());
   }
 
@@ -42,21 +42,21 @@ class Op {
     }[this.op];
   }
 
-  value(position: number, state: Array<bigint>, writeMode = false): bigint {
+  value(position: number, state: Array<number>, writeMode = false): number {
     const mode = this.modes[position] || Mode.Position;
 
     if (mode === Mode.Position) {
       if (writeMode) {
         return this.params[position];
       }
-      return state[Number(this.params[position])] || BigInt(0);
+      return state[this.params[position]] || 0;
     } else if (mode === Mode.Immediate) {
       return this.params[position];
     } else if (mode === Mode.Relative) {
       if (writeMode) {
-        return this.params[position] + BigInt(this.rp);
+        return this.params[position] + this.rp;
       }
-      return state[Number(this.params[position]) + this.rp] || BigInt(0);
+      return state[this.params[position] + this.rp] || 0;
     }
   }
 
@@ -64,91 +64,100 @@ class Op {
     return this.ip + this.paramCount() + 1;
   }
 
-  async execute(state: Array<bigint>, inputs: Array<bigint>, outputs: Array<bigint>): Promise<OpResult> {
-    const updated = (memory: Array<bigint>, idx: bigint | number, value: bigint | number): Array<bigint> => {
+  execute(state: Array<number>, inputs: Array<number>, outputs: Array<number>): OpResult {
+    const updated = (memory: Array<number>, idx: number | number, value: number | number): Array<number> => {
       const copy = memory.slice();
-      copy[Number(this.value(Number(idx), copy, true))] = BigInt(value);
+      copy[this.value(idx, copy, true)] = value;
 
       return copy;
     };
 
-    return new Promise((resolve, reject) => {
-      const result = {
-        state,
-        ip: this.nextStep(),
-        rp: this.rp,
-      };
+    const result = {
+      state,
+      ip: this.nextStep(),
+      rp: this.rp,
+    };
 
-      switch (this.op) {
-        case 1:
-          resolve({ ...result, state: updated(state, 2, this.value(0, state) + this.value(1, state))});
-          break;
-        case 2:
-          result.state = updated(state, 2, this.value(0, state) * this.value(1, state));
-          break;
-        case 3:
-          result.state = updated(state, 0, inputs.shift());
-          break;
-        case 4:
-          outputs.push(this.value(0, state));
-          break;
-        case 5:
-          if (this.value(0, state) !== BigInt(0)) {
-            result.ip = Number(this.value(1, state));
-          }
-          break;
-        case 6:
-          if (this.value(0, state) === BigInt(0)) {
-            result.ip = Number(this.value(1, state));
-          }
-          break;
-        case 7:
-          result.state = updated(state, 2, this.value(0, state) < this.value(1, state) ? 1 : 0);
-          break;
-        case 8:
-          result.state = updated(state, 2, this.value(0, state) === this.value(1, state) ? 1 : 0);
-          break;
-        case 9:
-          result.rp = result.rp + Number(this.value(0, state));
-          break;
-        case 99:
-          result.ip = this.ip;
-          break;
-        default:
-          reject(new Error("Unexpected op" + this.op));
-          return;
-      }
-
-      resolve(result);
-    });
+    switch (this.op) {
+      case 1:
+        return {
+          ...result,
+          state: updated(state, 2, this.value(0, state) + this.value(1, state))
+        };
+      case 2:
+        return {
+          ...result,
+          state: updated(state, 2, this.value(0, state) * this.value(1, state))
+        };
+      case 3:
+        return {
+          ...result,
+          state: updated(state, 0, inputs.shift())
+        };
+      case 4:
+        outputs.push(this.value(0, state));
+        return result;
+      case 5:
+        if (this.value(0, state) !== 0) {
+          return { ...result, ip: this.value(1, state) };
+        }
+        return result;
+      case 6:
+        if (this.value(0, state) === 0) {
+          return { ...result, ip: this.value(1, state) };
+        }
+        return result;
+      case 7:
+        return {
+          ...result,
+          state: updated(state, 2, this.value(0, state) < this.value(1, state) ? 1 : 0)
+        };
+      case 8:
+        return {
+          ...result,
+          state: updated(state, 2, this.value(0, state) === this.value(1, state) ? 1 : 0)
+        };
+      case 9:
+        return {
+          ...result,
+          rp: result.rp + this.value(0, state)
+        }
+      case 99:
+        return {
+          ...result,
+          ip: this.ip
+        }
+      default:
+        throw new Error("Unexpected op" + this.op);
+    }
   }
 }
 
 export default class Program {
-  state: Array<bigint>;
+  state: Array<number>;
   ip = 0;
   rp = 0;
-  inputs: Array<bigint>;
-  process: AsyncGenerator<bigint>;
+  inputs: Array<number>;
+  process: Generator<number>;
 
-  constructor(program: Array<bigint>, inputs: Array<bigint>) {
+  constructor(program: Array<number>, inputs: Array<number>) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
     this.process = this.run();
   }
 
-  addInput(i: bigint) {
+  addInput(i: number) {
     this.inputs.push(i);
   }
 
-  async next(): Promise<IteratorResult<bigint, any>> {
+  async next(): Promise<IteratorResult<number, any>> {
     return this.process.next();
   }
 
-  private async * run(): AsyncGenerator<bigint> {
-    while (this.state[this.ip] !== BigInt(99)) {
+  private * run(): Generator<number> {
+    while (this.state[this.ip] !== 99) {
       const outputs = [];
-      const result = await (new Op(this.state, this.ip, this.rp).execute(this.state, this.inputs, outputs));
+      const result = (new Op(this.state, this.ip, this.rp).execute(this.state, this.inputs, outputs));
       this.ip = result.ip;
       this.rp = result.rp;
       this.state = result.state;

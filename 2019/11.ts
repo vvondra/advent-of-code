@@ -4,7 +4,7 @@ import Program from "./intcode";
 const input = fs.readFileSync("11.input", "utf-8")
   .split(",")
   .map(s => s.trim())
-  .map(BigInt);
+  .map(Number);
 
 const mod = (a: number, b: number) => ((a % b) + b) % b;
 
@@ -27,28 +27,28 @@ const paint = async (start: Color) => {
   const coord = { x: 0, y: 0};
   let rotation = 0;
   let colorMode = true;
-  const robot = new Program(input, [BigInt(start)]);
+  const robot = new Program(input, [start]);
 
   for await (const value of robot.process) {
     if (colorMode) {
-      if (value === BigInt(Color.White)) {
+      if (value === Color.White) {
         painted[coord.x + ":" + coord.y] = Color.White;
-      } else if (value === BigInt(Color.Black)) {
+      } else if (value === Color.Black) {
         painted[coord.x + ":" + coord.y] = Color.Black;
       } else {
         throw new Error("Unexpected color");
       }
     } else {
-      if (value === BigInt(0)) {
+      if (value === 0) {
         rotation = mod(rotation - 1, 4);
-      } else if (value === BigInt(1)) {
+      } else if (value === 1) {
         rotation = mod(rotation + 1, 4);
       } else {
         throw new Error("Unexpected rotation");
       }
       rotationMove[rotation](coord);
 
-      robot.addInput(BigInt(painted[coord.x + ":" + coord.y] || Color.Black));
+      robot.addInput(painted[coord.x + ":" + coord.y] || Color.Black);
     }
 
     colorMode = !colorMode;

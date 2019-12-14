@@ -4,10 +4,10 @@ import Program from "./intcode";
 const input = fs.readFileSync("9.input", "utf-8")
   .split(",")
   .map(s => s.trim())
-  .map(BigInt);
+  .map(Number);
 
-const p = new Program(input, [BigInt(1)]);
-const p2 = new Program(input, [BigInt(2)]);
+const p = new Program(input, [1]);
+const p2 = new Program(input, [2]);
 
 (async () => {
   for await (const value of p.process) {
