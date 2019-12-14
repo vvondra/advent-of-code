@@ -50,7 +50,6 @@ const paint = async (start: Color) => {
 
       robot.addInput(painted[coord.x + ":" + coord.y] || Color.Black);
     }
-
     colorMode = !colorMode;
   }
 
