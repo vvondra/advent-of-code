@@ -61,13 +61,52 @@ const energy = (stars: Coord[], velocities: Coord[]) => {
   return total;
 }
 
+function gcd(x: number, y: number) {
+  x = Math.abs(x);
+  y = Math.abs(y);
+  while (y) {
+    const t = y;
+    y = x % y;
+    x = t;
+  }
+
+  return x;
+}
+
+const cycle = (initial: Coord[], coord: string): number => {
+  const visited = {};
+  let counter = 0;
+  const key = (s: Coord[], v: Coord[]) => s.map(s => s[coord]).join(":") + ":" + v.map(s => s[coord]).join(":");
+  let simulation = simulate(initial);
+  let next: [Coord[], Coord[]];
+  while (true) {
+    next = simulation.next().value
+    const k = key(...next);
+    if (k in visited) {
+      return counter - visited[k];
+    }
+
+    visited[k] = counter;
+
+    counter++;
+  }
+}
+
 let simulation = simulate(input);
 let counter = 1000;
 let last: [Coord[], Coord[]];
 while (counter > 0) {
   last = simulation.next().value
-  counter--
+  counter--;
 }
 
-simulation.return
 console.log(energy(...last));
+
+const x = cycle(input, "x");
+const y = cycle(input, "y");
+const z = cycle(input, "z");
+
+const xy = (x * y) / gcd(x, y);
+const xyz = (xy * z) / gcd(xy, z);
+
+console.log(xyz);
