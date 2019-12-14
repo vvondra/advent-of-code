@@ -7,7 +7,6 @@ const input = fs.readFileSync("7.input", "utf-8")
   .map(Number);
 
 const runAmplifiers = async (program: Array<number>, phases: Array<number>): Promise<number> => {
-  const feed = 0;
   const amplifiers: Program[] = [];
   for (let i = 0; i < phases.length; i++) {
     amplifiers[i] = new Program(program, [phases[i]]);
