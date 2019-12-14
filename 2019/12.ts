@@ -87,7 +87,6 @@ const cycle = (initial: Coord[], coord: string): number => {
     }
 
     visited[k] = counter;
-
     counter++;
   }
 }
