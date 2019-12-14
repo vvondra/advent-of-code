@@ -55,7 +55,7 @@ class Segment {
 
 const parse = (reader: rd.Interface): Promise<Segment[][]> => {
   const lines = [];
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     reader
       .on("line", (line) => {
         const points: Array<[string, number]> = line
