@@ -23,10 +23,8 @@ const hasSameAdjacent = (digits: number[]) => {
 };
 
 const hasTwoSameAdjacent = (digits: number[]) => {
-  let prev = digits[0];
   let freq = 1;
   for (let i = 0; i < digits.length - 1; i++) {
-    prev = digits[i];
     if (digits[i] === digits[i + 1]) {
       freq++;
     }
