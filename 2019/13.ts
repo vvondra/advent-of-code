@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import Program from "./intcode";
 import * as readline from "readline";
+import Program from "./intcode";
 
 const input = fs.readFileSync("13.input", "utf-8")
   .split(",")
@@ -15,7 +15,7 @@ enum Tile {
   Wall = 1,
   Block = 2,
   Paddle = 3,
-  Ball = 4
+  Ball = 4,
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -30,12 +30,12 @@ const render = (game: Tile[][], score: number, other = "") => {
       case Tile.Paddle: return "=";
     }
     return "?";
-  }
+  };
   const cols = Math.max(...game.map(r => r.length));
-  const blank = '\n'.repeat(process.stdout.rows)
-  console.log(blank)
-  readline.cursorTo(process.stdout, 0, 0)
-  readline.clearScreenDown(process.stdout)
+  const blank = "\n".repeat(process.stdout.rows);
+  console.log(blank);
+  readline.cursorTo(process.stdout, 0, 0);
+  readline.clearScreenDown(process.stdout);
   for (let r = 0; r < game.length; r++) {
     for (let c = 0; c < cols; c++) {
       process.stdout.write(format(game[r][c]));
@@ -44,7 +44,7 @@ const render = (game: Tile[][], score: number, other = "") => {
   }
   process.stdout.write("Score: " + score + "\n");
   console.log(other);
-}
+};
 
 (async () => {
   const grid: Tile[][] = [];
@@ -65,10 +65,10 @@ const render = (game: Tile[][], score: number, other = "") => {
     }
     grid[y][x] = z;
     counter[z]++;
-  }
+  };
 
   arcade.inputFn = async () => {
-    render(grid, score)
+    render(grid, score);
     await sleep(5);
     return Math.sign(ball[0] - paddle[0]);
   };
@@ -88,6 +88,6 @@ const render = (game: Tile[][], score: number, other = "") => {
     set(x.value, y.value, z.value);
   }
 
-  render(grid, score)
+  render(grid, score);
   console.log(counter[Tile.Block]);
 })();
