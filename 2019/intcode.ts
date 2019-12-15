@@ -1,6 +1,6 @@
 
 type OpResult = {
-  state: Array<number>,
+  state: number[],
   ip: number,
   rp: number,
 };
@@ -15,10 +15,10 @@ class Op {
   op: number;
   ip: number;
   rp: number;
-  params: Array<number>;
+  params: number[];
   modes: number[];
 
-  constructor(prev: Array<number>, ip: number, rp: number) {
+  constructor(prev: number[], ip: number, rp: number) {
     const code = prev[ip];
     this.ip = ip;
     this.rp = rp;
@@ -42,7 +42,7 @@ class Op {
     }[this.op];
   }
 
-  value(position: number, state: Array<number>, writeMode = false): number {
+  value(position: number, state: number[], writeMode = false): number {
     const mode = this.modes[position] || Mode.Position;
 
     if (mode === Mode.Position) {
@@ -64,8 +64,8 @@ class Op {
     return this.ip + this.paramCount() + 1;
   }
 
-  async execute(state: Array<number>, inputs: () => Promise<number>, outputs: Array<number>): Promise<OpResult> {
-    const updated = (memory: Array<number>, idx: number | number, value: number | number): Array<number> => {
+  async execute(state: number[], inputs: () => Promise<number>, outputs: number[]): Promise<OpResult> {
+    const updated = (memory: number[], idx: number | number, value: number | number): number[] => {
       const copy = memory.slice();
       copy[this.value(idx, copy, true)] = value;
 
@@ -82,17 +82,17 @@ class Op {
       case 1:
         return {
           ...result,
-          state: updated(state, 2, this.value(0, state) + this.value(1, state))
+          state: updated(state, 2, this.value(0, state) + this.value(1, state)),
         };
       case 2:
         return {
           ...result,
-          state: updated(state, 2, this.value(0, state) * this.value(1, state))
+          state: updated(state, 2, this.value(0, state) * this.value(1, state)),
         };
       case 3:
         return {
           ...result,
-          state: updated(state, 0, await inputs())
+          state: updated(state, 0, await inputs()),
         };
       case 4:
         outputs.push(this.value(0, state));
@@ -110,23 +110,23 @@ class Op {
       case 7:
         return {
           ...result,
-          state: updated(state, 2, this.value(0, state) < this.value(1, state) ? 1 : 0)
+          state: updated(state, 2, this.value(0, state) < this.value(1, state) ? 1 : 0),
         };
       case 8:
         return {
           ...result,
-          state: updated(state, 2, this.value(0, state) === this.value(1, state) ? 1 : 0)
+          state: updated(state, 2, this.value(0, state) === this.value(1, state) ? 1 : 0),
         };
       case 9:
         return {
           ...result,
-          rp: result.rp + this.value(0, state)
-        }
+          rp: result.rp + this.value(0, state),
+        };
       case 99:
         return {
           ...result,
-          ip: this.ip
-        }
+          ip: this.ip,
+        };
       default:
         throw new Error("Unexpected op" + this.op);
     }
@@ -134,14 +134,14 @@ class Op {
 }
 
 export default class Program {
-  state: Array<number>;
+  state: number[];
   ip = 0;
   rp = 0;
-  inputs: Array<number>;
+  inputs: number[];
   inputFn: () => Promise<number>;
   process: AsyncGenerator<number>;
 
-  constructor(program: Array<number>, inputs: Array<number>) {
+  constructor(program: number[], inputs: number[]) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
     this.process = this.run();
