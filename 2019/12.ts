@@ -13,8 +13,8 @@ const input: Coord[] = fs.readFileSync("12.input", "utf-8")
     }, {}) as Coord;
   });
 
-const simulate = function * (initial: Coord[]): Generator<[Coord[], Coord[]]> {
-  const stars = initial.map(x => ({ x: x.x, y: x.y, z: x.z }))
+const simulate = function *(initial: Coord[]): Generator<[Coord[], Coord[]]> {
+  const stars = initial.map(x => ({ x: x.x, y: x.y, z: x.z }));
   const velocities = stars.map(x => ({ x: 0, y: 0, z: 0 }));
 
   while (true) {
@@ -41,9 +41,9 @@ const simulate = function * (initial: Coord[]): Generator<[Coord[], Coord[]]> {
       }
     }
 
-    yield [stars, velocities]
+    yield [stars, velocities];
   }
-}
+};
 
 const energy = (stars: Coord[], velocities: Coord[]) => {
   let total = 0;
@@ -59,7 +59,7 @@ const energy = (stars: Coord[], velocities: Coord[]) => {
   }
 
   return total;
-}
+};
 
 function gcd(x: number, y: number) {
   let ay = Math.abs(y);
@@ -77,10 +77,10 @@ const cycle = (initial: Coord[], coord: string): number => {
   const visited = {};
   let counter = 0;
   const key = (s: Coord[], v: Coord[]) => s.map(s => s[coord]).join(":") + ":" + v.map(s => s[coord]).join(":");
-  let simulation = simulate(initial);
+  const simulation = simulate(initial);
   let next: [Coord[], Coord[]];
   while (true) {
-    next = simulation.next().value
+    next = simulation.next().value;
     const k = key(...next);
     if (k in visited) {
       return counter - visited[k];
@@ -89,13 +89,13 @@ const cycle = (initial: Coord[], coord: string): number => {
     visited[k] = counter;
     counter++;
   }
-}
+};
 
-let simulation = simulate(input);
+const simulation = simulate(input);
 let counter = 1000;
 let last: [Coord[], Coord[]];
 while (counter > 0) {
-  last = simulation.next().value
+  last = simulation.next().value;
   counter--;
 }
 
