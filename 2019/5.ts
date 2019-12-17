@@ -14,7 +14,5 @@ const second = new Program(input, [5]);
     console.log(out);
   }
 
-  for await (const out of second.process) {
-    console.log(out);
-  }
+  console.log(await second.nextVal());
 })();
