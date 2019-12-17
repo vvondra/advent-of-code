@@ -10,11 +10,6 @@ const p = new Program(input, [1]);
 const p2 = new Program(input, [2]);
 
 (async () => {
-  for await (const value of p.process) {
-    console.log(value);
-  }
-
-  for await (const value of p2.process) {
-    console.log(value);
-  }
+  console.log(await p.nextVal());
+  console.log(await p2.nextVal());
 })();
