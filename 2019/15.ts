@@ -45,7 +45,7 @@ enum Output {
   let lastStep: Step;
   while (queue.length > 0) {
     const next = queue.shift();
-    const out = (await next.robot.process.next()).value;
+    const out = await next.robot.nextVal();
     switch (out) {
       case Output.Wall:
         map[toKey(next.destination)] = Infinity;
@@ -72,7 +72,7 @@ enum Output {
   queue = [...explore(lastStep.destination, lastStep.robot, 1)];
   while (queue.length > 0) {
     const next = queue.shift();
-    const out = (await next.robot.process.next()).value;
+    const out = await next.robot.nextVal();
     switch (out) {
       case Output.Wall:
         map[toKey(next.destination)] = Infinity;

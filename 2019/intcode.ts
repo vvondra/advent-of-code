@@ -141,7 +141,7 @@ export default class Program {
   inputFn: () => Promise<number>;
   process: AsyncGenerator<number>;
 
-  constructor(program: number[], inputs: number[]) {
+  constructor(program: number[], inputs: number[] = []) {
     this.state = program.slice(0);
     this.inputs = inputs.slice(0);
     this.process = this.run();
@@ -150,10 +150,24 @@ export default class Program {
 
   addInput(i: number) {
     this.inputs.push(i);
+    return this;
+  }
+
+  dup(): Program {
+    const p = new Program(this.state.slice(0), this.inputs)
+
+    p.ip = this.ip;
+    p.rp = this.rp;
+
+    return p;
   }
 
   async next(): Promise<IteratorResult<number, any>> {
     return this.process.next();
+  }
+
+  async nextVal(): Promise<number> {
+    return (await this.process.next()).value;
   }
 
   private async * run(): AsyncGenerator<number> {
