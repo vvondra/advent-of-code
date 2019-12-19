@@ -14,8 +14,12 @@ const load = async (inp: number[]): Promise<string[][]> => {
     output.push(out)
   }
 
-  const scaffold = output.reduce(([row, grid], el) => {
-    const char = String.fromCharCode(el);
+  return createScaffold(output);
+}
+
+const createScaffold = (output: number[]): string[][] => {
+  const scaffold: string[][] = output.reduce(([row, grid]: [number, string[][]], el) => {
+    const char = el > 255 ? el.toString() : String.fromCharCode(el);
     if (char === "\n") {
       grid[row + 1] = [];
       return [row + 1, grid];
@@ -23,9 +27,9 @@ const load = async (inp: number[]): Promise<string[][]> => {
 
     grid[row].push(char);
     return [row, grid];
-  }, [0, [[]]])[1].filter((e: string[]) => e.length > 0);
+  }, [0, [[]]])[1] as string[][];
 
-  return scaffold;
+  return scaffold.filter((e: string[]) => e.length > 0);
 }
 
 const render = (scaffold: string[][]) => {
@@ -128,48 +132,42 @@ const sequence = (list: string[][]): Array<string | number> => {
 
   console.log(alignment(crossings(scaffold)));
   render(scaffold)
-  const instructions = sequence(scaffold);
+  const instructions = sequence(scaffold).join(":");
 
-  const grams = 7;
-  const pairs = [];
-  for (let i = 0; i < instructions.length; i += grams) {
-    pairs.push(instructions.slice(i, i + grams).join(","));
-  }
+  // Cheater, cheater :( using only brain power here
+  // I generated possibilities using another function and then guessed some last chars
+  // Probably I would have to code some function trying segments of different sizes
+  // Or perhaps a suffix tree would work
+  const a = /R:8:L:10:R:8/g;
+  const b = /R:12:R:8:L:8:L:12/g;
+  const c = /L:12:L:10:L:8/g;
+  const prog = instructions
+    .replace(a, "A")
+    .replace(b, "B")
+    .replace(c, "C")
+    .split(":")
+    .join(",");
+  const fns = [
+    a.source,
+    b.source,
+    c.source
+  ].map(fn => fn.split(":").join(","));
 
-  console.log(pairs);
-
-  const counts = pairs.reduce((counts, pair) => {
-    counts[pair] = (counts[pair] || 0) + 1;
-    return counts;
-  }, {});
-
-  const fns = Object.keys(counts).reduce(([name, names], fn) => {
-    names[fn] = name;
-    return [name + 1, names];
-  }, ["A".charCodeAt(0), {}] as [number, object])[1];
-
-  console.log(counts);
-  console.log(fns);
-
-  const prog = pairs
-    .map(p => fns[p])
-    .map(p => String.fromCharCode(p))
-    .concat(["\n"]);
-
-  console.log(prog, prog.length);
-  pairs.forEach(p => console.log(p, p.length))
-
-  const program = prog.map(p => p.charCodeAt(0))
-    .concat(
-      pairs.map(p => p.concat("\n").split("").map(p => p.charCodeAt(0))).flat()
-    );
-
-  console.log(program);
+  const seq = [prog, ...fns].join("\n")
+  const ascii = seq.split("")
+    .map(c => c.charCodeAt(0))
+    .concat(["\n".charCodeAt(0)])
+    .concat(["n".charCodeAt(0)])
+    .concat(["\n".charCodeAt(0)])
+    ;
 
   const input2 = input.slice(0);
   input2[0] = 2;
-  const robot = new Program(input2, program);
+  const robot = new Program(input2, ascii);
+  const output = []
   for await (const out of robot.process) {
-    console.log(out);
+    output.push(out);
   }
+
+  render(createScaffold(output));
 })();
