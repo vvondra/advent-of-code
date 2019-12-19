@@ -57,29 +57,6 @@ const alignment = (list: number[][]): number => {
   }, 0)
 }
 
-const transpose = <T>(m: T[][]): T[][] => m[0].map((x,i) => m.map(x => x[i]));
-const lengths = (list: string[][]): number[] => {
-  const out = [];
-  let buffer = 0;
-  for (let row = 0; row < list.length; row++) {
-    for (let col = 0; col < list[row].length; col++) {
-      if (list[row][col] !== ".") {
-        buffer++;
-      } else if (buffer > 0) {
-        out.push(buffer);
-        buffer = 0;
-      }
-    }
-
-    if (buffer > 0) {
-      out.push(buffer);
-      buffer = 0;
-    }
-  }
-
-  return out.filter(x => x != 1);
-}
-
 const findRobot = (list: string[][]): [number, number] => {
   return list.reduce((index, row, currentRow) => {
     const pos = [
@@ -108,34 +85,91 @@ const rotationChars = {
   'v': 2,
   '<': 3
 }
-const nextRotation = (list: string[][], current: [number, number], rotation: number) => {
+const nextRotation = (list: string[][], current: [number, number], rotation: number): [string, number] => {
   const left = mod(rotation - 1, 4);
   const leftPos = [current[0] + rotations[left][0], current[1] + rotations[left][1]];
-  if (list[leftPos[0]][leftPos[1]] === '#') {
+  if (list[leftPos[0]] && list[leftPos[0]][leftPos[1]] === '#') {
     return ['L', left];
   }
 
   const right = mod(rotation + 1, 4);
   const rightPos = [current[0] + rotations[right][0], current[1] + rotations[right][1]];
-  if (list[rightPos[0]][rightPos[1]] === '#') {
+  if (list[rightPos[0]] && list[rightPos[0]][rightPos[1]] === '#') {
     return ['R', right];
   }
 
-  throw new Error("illegal state");
+  return ['X', rotation];
 }
 const sequence = (list: string[][]): Array<string | number> => {
   let current = findRobot(list);
+  let instructions = [];
+  let rotation = rotationChars[list[current[0]][current[1]]];
+  let step: string;
+  while (true) {
+    [step, rotation] = nextRotation(list, current, rotation);
+    if (step === 'X') {
+      break;
+    }
+    instructions.push(step);
+    const vector = rotations[rotation];
+    let length = 0;
+    while (list[current[0] + vector[0]] && list[current[0] + vector[0]][current[1] + vector[1]] === "#") {
+      length++;
+      current = [current[0] + vector[0], current[1] + vector[1]]
+    }
+    instructions.push(length);
+  }
 
-  console.log(nextRotation(list, current, rotationChars[list[current[0]][current[1]]]));
-
-  return [];
+  return instructions;
 }
 
 (async () => {
   const scaffold = await load(input);
 
   console.log(alignment(crossings(scaffold)));
-  console.log(lengths(scaffold));
-  console.log(lengths(transpose(scaffold)));
-  console.log(sequence(scaffold));
+  render(scaffold)
+  const instructions = sequence(scaffold);
+
+  const grams = 7;
+  const pairs = [];
+  for (let i = 0; i < instructions.length; i += grams) {
+    pairs.push(instructions.slice(i, i + grams).join(","));
+  }
+
+  console.log(pairs);
+
+  const counts = pairs.reduce((counts, pair) => {
+    counts[pair] = (counts[pair] || 0) + 1;
+    return counts;
+  }, {});
+
+  const fns = Object.keys(counts).reduce(([name, names], fn) => {
+    names[fn] = name;
+    return [name + 1, names];
+  }, ["A".charCodeAt(0), {}] as [number, object])[1];
+
+  console.log(counts);
+  console.log(fns);
+
+  const prog = pairs
+    .map(p => fns[p])
+    .map(p => String.fromCharCode(p))
+    .concat(["\n"]);
+
+  console.log(prog, prog.length);
+  pairs.forEach(p => console.log(p, p.length))
+
+  const program = prog.map(p => p.charCodeAt(0))
+    .concat(
+      pairs.map(p => p.concat("\n").split("").map(p => p.charCodeAt(0))).flat()
+    );
+
+  console.log(program);
+
+  const input2 = input.slice(0);
+  input2[0] = 2;
+  const robot = new Program(input2, program);
+  for await (const out of robot.process) {
+    console.log(out);
+  }
 })();
