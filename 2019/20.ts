@@ -6,18 +6,23 @@ const input = fs.readFileSync("20.input", "utf-8")
   .map(s => s.split(""));
 
 type XY = [number, number];
-type Maze = { maze: string[][], portals: { [key: string]: XY[] }, start: string, end: string }
+type XYZ = [XY, number];
+type Maze = { maze: string[][], portals: { [key: string]: { inner: XY, outer: XY } }, start: string, end: string }
 const transpose = <T>(array: T[][]): T[][] => array[0].map((col, i) => array.map(row => row[i]));
 const pad = <T>(arr: T[], len: number, fill: any): T[] => arr.concat(Array(len).fill(fill)).slice(0, len);
-const toKey = (xy: XY) => xy.join(";");
+const toKey = (xy: XY, level: number) => xy.join(";") + ';' + level;
 const isPortal = (cell: string) => cell.charCodeAt(0) > 96
+const isOuter = (map: string[][], xy: XY) => {
+  const [i, j] = xy;
+  return i < 2 || j < 2 || i > map.length - 3 || j > map[0].length - 3;
+}
 
 const normalize = (map: string[][]): Maze => {
   let seq = 'a'.charCodeAt(0);
   let mapping = {};
   let xys = {};
 
-  const rename = (row: string[], j: number): string[] => {
+  const rename = (row: string[]): string[] => {
     const r = [];
     for (let i = 0; i < row.length - 1; i++) {
       if (row[i].match(/[A-Z]/) && row[i + 1].match(/[A-Z]/)) {
@@ -58,10 +63,11 @@ const normalize = (map: string[][]): Maze => {
   for (let i = 0; i < final.length; i++) {
     for (let j = 0; j < final[i].length; j++) {
       if (isPortal(final[i][j])) {
-        if (!xys[final[i][j]]) {
-          xys[final[i][j]] = [];
+        let label = "inner";
+        if (isOuter(final, [i, j])) {
+          label = "outer"
         }
-        xys[final[i][j]].push([i, j]);
+        xys[final[i][j]] = { ...xys[final[i][j]], [label]: [i, j] }
       }
     }
   }
@@ -74,55 +80,62 @@ const normalize = (map: string[][]): Maze => {
   };
 }
 
-
-
-const explore = (map: Maze) => {
+const explore = (map: Maze, recursive: boolean) => {
   const { maze, portals, start, end } = map;
-  let current = portals[start][0];
+  let current = portals[start].outer;
   let distance = 0;
-  let target = portals[end][0];
-  const visited = new Set([toKey(current)])
-  const steps = (): XY[] => {
+  let level = 0;
+  const visited = new Set([toKey(current, level)])
+  const steps = (): XYZ[] => {
     const movements = [[1, 0], [-1, 0], [0, -1], [0, 1]];
 
-    let candidates: XY[];
+    let candidates: XYZ[];
     const cell = maze[current[0]][current[1]];
+    if (isPortal(cell) && isOuter(maze, current) && level == 0 && recursive && cell != end && cell != start) {
+      return [];
+    }
+
+    if ((cell == start || cell == end ) && level > 0) {
+      return [];
+    }
+
     if (isPortal(cell) && cell != start) {
-      candidates = portals[cell]
-        .map(c => {
-          return movements
-            .map(m => [c[0] + m[0], c[1] + m[1]] as XY);
-        })
-        .flat();
+      const base = isOuter(maze, current) ? portals[cell].inner : portals[cell].outer;
+      candidates = candidates = movements
+        .map(m => [[base[0] + m[0], base[1] + m[1]], level + (isOuter(maze, current) ? -1 : 1)] as XYZ);
     } else {
       candidates = movements
-        .map(m => [current[0] + m[0], current[1] + m[1]] as XY);
+        .map(m => [[current[0] + m[0], current[1] + m[1]], level] as XYZ);
     }
 
     return candidates
-      .filter(m => maze[m[0]] && maze[m[0]][m[1]]) // in bounds
-      .filter(m => maze[m[0]][m[1]] !== ' ' && maze[m[0]][m[1]] !== '#')
-      .filter(e => !visited.has(toKey(e)));
+      .filter(m => maze[m[0][0]] && maze[m[0][0]][m[0][1]]) // in bounds
+      .filter(m => maze[m[0][0]][m[0][1]] !== ' ' && maze[m[0][0]][m[0][1]] !== '#')
+      .filter(e => !visited.has(toKey(e[0], e[1])))
+      .filter(e => e[1] < 30) // short-circuit some
+      .map(m => recursive ? m : [m[0], 0]);
   }
-
-  const queue = [...steps().map(x => [x, 1] as [XY, number])];
+  const queue = [...steps().map(x => [x, 1] as [XYZ, number])];
   while (queue.length > 0) {
-    [current, distance] = queue.shift();
-    visited.add(toKey(current));
+    [[current, level], distance] = queue.shift();
+
+    visited.add(toKey(current, level));
+
     if (isPortal(maze[current[0]][current[1]])) {
-      distance = distance - 1;
+      distance = distance - 1; // I forgot to read the instructions, portals are activated on dot
     }
-    if (maze[current[0]][current[1]] === end) {
+
+    if (maze[current[0]][current[1]] === end && level === 0) {
       console.log(distance - 1);
       break;
     }
 
-    steps()
-      .forEach(e => queue.push([e, distance + 1]));
+    steps().forEach(e => queue.push([e, distance + 1]));
   }
 }
 
 const normalized = normalize(input);
 console.log(normalized.maze.map(e => e.join("")).join("\n"));
 
-explore(normalized);
+explore(normalized, false);
+explore(normalized, true);
