@@ -5,12 +5,7 @@ val input = File("4.input").readText()
 	.map(String::trim)
 	.map { it.replace("\n", " ") }
 	.map { it.split(" ") }
-	.map { it.map {
-			pair ->
-				val p = pair.split(":")
-				p[0] to p[1]
-			}.toMap()
-	}
+	.map { it.map { pair -> pair.split(":").let { p -> p[0] to p[1] } }.toMap() }
 
 
 val required = listOf("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
