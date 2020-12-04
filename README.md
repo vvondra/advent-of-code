@@ -1,5 +1,15 @@
 # advent-of-code
 
+## 2020
+
+[productboard](https://www.productboard.com/) is heavily investing into Kotlin, so that made this year's choice quite easy!
+
+1. [Report Repair](./2020/1.kts), find combinations in a cartesian product summing to 2020
+1. [Password Philosophy](./2020/2.kts), validate strings by some criteria
+1. [Toboggan Trajectory](./2020/3.kts), explore straight paths on a 2D plane
+1. [Passport Processing](./2020/4.kts), validate strings by some criteria, a bit more parsing then #2
+
+
 ## 2019
 
 [productboard](https://www.productboard.com/) is a big fan of Typescript, so that made this year's choice quite easy!
