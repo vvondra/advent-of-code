@@ -8,7 +8,8 @@
 1. [Password Philosophy](./2020/2.kts), validate strings by some criteria
 1. [Toboggan Trajectory](./2020/3.kts), explore straight paths on a 2D plane
 1. [Passport Processing](./2020/4.kts), validate strings by some criteria, a bit more parsing then #2
-
+1. [Binary Boarding](./2020/5.kts), following a binary search, finding a gap in a sequence
+1. [Custom Customs](./2020/6.kts), union and intersection of elements in a set
 
 ## 2019
 
