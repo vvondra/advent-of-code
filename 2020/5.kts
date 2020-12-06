@@ -1,22 +1,27 @@
 import java.io.File
+
 val input = File("5.input").readLines()
 
 fun seatId(code: CharSequence): Int {
     val (rowCode, seatCode) = code.partition { it == 'B' || it == 'F' }
 
     val row = rowCode.fold(0 to 127, { (min, max), c ->
-        when(c) {
+        when (c) {
             'B' -> (min + max) / 2 + 1 to max
             'F' -> min to (min + max) / 2
-            else -> { throw Exception("Invalid code") }
+            else -> {
+                throw Exception("Invalid code")
+            }
         }
     })
 
     val seat = seatCode.fold(0 to 7, { (min, max), c ->
-        when(c) {
+        when (c) {
             'R' -> (min + max) / 2 + 1 to max
             'L' -> min to (min + max) / 2
-            else -> { throw Exception("Invalid code") }
+            else -> {
+                throw Exception("Invalid code")
+            }
         }
     })
 
