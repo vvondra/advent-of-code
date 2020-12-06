@@ -25,7 +25,7 @@ fun seatId(code: CharSequence): Int {
 
 val seatCodes = input.map { seatId(it) }
 
-println(seatCodes.maxOrNull()!!)
+seatCodes.maxOrNull()?.let(::println)
 
 val mySeat = seatCodes.sorted().fold(0, { prev, next ->
     when (prev) {
