@@ -6,7 +6,7 @@
 
 1. [Report Repair](./2020/1.kts), find combinations in a cartesian product summing to 2020
 1. [Password Philosophy](./2020/2.kts), validate strings by some criteria
-1. [Toboggan Trajectory](./2020/3.kts), explore straight paths on a 2D plane
+1. [Toboggan Trajectory](./2020/3.kts), explore number of collisions on a straight paths on a 2D plane
 1. [Passport Processing](./2020/4.kts), validate strings by some criteria, a bit more parsing then #2
 
 
