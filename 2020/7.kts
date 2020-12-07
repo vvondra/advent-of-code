@@ -7,8 +7,7 @@ val bags = File("7.input").readLines()
   .mapValues {
     it.value
       .split(",")
-      .map { it.trim() }
-      .map { it.replace(".", "").replace(" bags", "").replace(" bag", "") }
+      .map { it.trim().replace(Regex(" bags?\\.?$"), "") }
       .map { it.split(" ", limit = 2) }
       .associate { it[1] to it[0] }
       .mapValues { it.value.replace("no", "0") }
