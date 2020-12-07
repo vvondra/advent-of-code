@@ -1,5 +1,6 @@
 import java.io.File;
 
+// {shiny gold={bright lavender=4, striped maroon=1, plaid silver=2}, bright lavender={...}
 val bags = File("7.input").readLines()
   .map { it.split(" bags contain ") }
   .associate { it[0] to it[1] }
@@ -13,7 +14,6 @@ val bags = File("7.input").readLines()
         .mapValues { it.value.replace("no", "0") }
         .mapValues { it.value.toInt() }
   }
-
 
 fun containsBag(desired: String, current: String): Boolean {
   val bag = bags.get(current)
