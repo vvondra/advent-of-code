@@ -15,9 +15,7 @@ fun getProgram(ins: List<Ins>): Sequence<State> {
       "nop" -> State(ip + 1, acc)
       "acc" -> State(ip + 1, acc + ins[ip].arg)
       "jmp" -> State(ip + ins[ip].arg, acc)
-      else -> {
-        throw Exception("Unknown instruction")
-      }
+      else -> throw Exception("Unknown instruction")
     }
 
     // Infinite loop detector
@@ -30,16 +28,16 @@ getProgram(instructions).last().let { println(it.acc) }
 
 
 // Part 2
-val fixes = instructions.mapIndexed { i, ins ->
-  when (ins.code) {
-    "acc" -> null
-    "jmp" -> instructions.take(i) + ins.copy(code = "nop") + instructions.drop(i + 1)
-    "nop" -> instructions.take(i) + ins.copy(code = "jmp") + instructions.drop(i + 1)
-    else -> null
+val fixes = instructions
+  .mapIndexed { i, ins ->
+    when (ins.code) {
+      "acc" -> null
+      "jmp" -> instructions.take(i) + ins.copy(code = "nop") + instructions.drop(i + 1)
+      "nop" -> instructions.take(i) + ins.copy(code = "jmp") + instructions.drop(i + 1)
+      else -> null
+    }
   }
-}.filterNotNull()
-
-val fixed = fixes
+  .filterNotNull()
   .map { getProgram(it).last() }
   .find { it.ip == instructions.size }
   ?.let { println(it.acc) }
