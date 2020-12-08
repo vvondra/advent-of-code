@@ -2,14 +2,11 @@ import java.io.File
 
 data class Ins(val code: String, val arg: Int)
 data class State(val ip: Int, val acc: Int)
-data class Execution(val instructions: List<Ins>)
 
 var instructions = File("8.input").readLines()
   .map { it.split(" ").let { Ins(it[0], it[1].toInt()) } }
 
-fun getProgram(execution: Execution): Sequence<State> {
-  val (ins) = execution
-
+fun getProgram(ins: List<Ins>): Sequence<State> {
   return generateSequence(Pair(State(0, 0), emptySet<Int>()), exec@{ (state, visited) ->
     val (ip, acc) = state
     if (ip >= ins.size) return@exec null // Termination detection
@@ -29,7 +26,7 @@ fun getProgram(execution: Execution): Sequence<State> {
 }
 
 // Part 1
-getProgram(Execution(instructions)).last().let { println(it.acc) }
+getProgram(instructions).last().let { println(it.acc) }
 
 
 // Part 2
@@ -43,6 +40,6 @@ val fixes = instructions.mapIndexed { i, ins ->
 }.filterNotNull()
 
 val fixed = fixes
-  .map { getProgram(Execution(it)).last() }
+  .map { getProgram(it).last() }
   .find { it.ip == instructions.size }
   ?.let { println(it.acc) }
