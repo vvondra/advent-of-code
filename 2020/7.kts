@@ -24,8 +24,7 @@ fun containsBag(desired: String, current: String): Boolean {
 
 fun countBags(color: String): Int {
   return bags.getOrDefault(color, emptyMap())
-    .mapValues { it.value + it.value * countBags(it.key) }
-    .values
+    .map { it.value + it.value * countBags(it.key) }
     .sum()
 }
 

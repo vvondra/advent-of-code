@@ -24,7 +24,7 @@ fun getProgram(ins: List<Ins>): Sequence<State> {
 }
 
 // Part 1
-getProgram(instructions).last().let { println(it.acc) }
+getProgram(instructions).last().apply { println(acc) }
 
 
 // Part 2
@@ -40,4 +40,4 @@ val fixes = instructions
   .filterNotNull()
   .map { getProgram(it).last() }
   .find { it.ip == instructions.size }
-  ?.let { println(it.acc) }
+  ?.apply { println(acc) }
