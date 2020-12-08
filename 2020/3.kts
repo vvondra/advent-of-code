@@ -30,6 +30,5 @@ val scenarios = listOf(
 
 val trees = scenarios.map { treesMet(input, it) }
 
-println(trees)
 println(trees.first())
 println(trees.reduce(Long::times))
