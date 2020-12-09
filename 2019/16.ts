@@ -3,42 +3,28 @@ import * as fs from "fs";
 const input = fs.readFileSync("16.input", "utf-8").trim().split("").map(Number);
 
 const pattern = function* (position: number): Generator<[number, number]> {
-  const base = [0, 1, 0, -1];
+  const base = [1, 0, -1, 0];
   let digit = 0;
-  let skipped = false;
-  let order = 0;
+  let order = position - 1;
   while (true) {
-    if (order > 100) { break ; }
-    if (base[digit] === 0) {
-      const shift = skipped ? position : position - 1;
-      console.log(digit, base[digit], shift, position)
-      if (shift > 0) {
-        digit = (digit + shift) % base.length;
-        order += shift;
-        continue;
-      }
-
-    }
-
     for (let i = 0; i < position; i++) {
-      if (skipped) {
-        yield [order, base[digit]];
-        order++;
-      } else {
-        skipped = true;
-      }
+      yield [order, base[digit]];
+      order++;
     }
     digit = (digit + 1) % base.length;
+    if (base[digit] === 0) {
+      order += position;
+      digit = (digit + 1) % base.length;
+    }
   }
 }
 
 const row = (digits: number[], position: number): number => {
   let digit = 0;
   for (const [i, c] of pattern(position)) {
-    if (i === digits.length) {
+    if (i >= digits.length) {
       break;
     }
-
     digit += c * digits[i];
   }
 

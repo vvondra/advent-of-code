@@ -31,7 +31,6 @@ nums.indices
 // Part two, solution B, sliding a time window until the sum is just right
 generateSequence(Triple(0, 0, 0L)) { (i, j, sum) ->
   val diff = firstInvalid - sum
-  //println("${i} ${j} ${sum}")
   when {
     diff > 0L -> Triple(i, j + 1, sum + nums[j])
     diff < 0L -> Triple(i + 1, j, sum - nums[i])
