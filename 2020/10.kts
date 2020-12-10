@@ -14,19 +14,19 @@ chain.windowed(2)
 
 // Part 2
 var memo = mutableMapOf<Pair<Int, Int>, Long>()
-fun count(start: Int, tail: Int): Long {
-  if (tail == chain.count()) return 1
-  if (memo.containsKey(start to tail)) return memo[start to tail]!!
+fun count(start: Int, used: Int): Long {
+  if (used == chain.count()) return 1
+  if (memo.containsKey(start to used)) return memo[start to used]!!
 
   return (1..maxJump)
     .map { skip ->
-      val head = chain.getOrNull(tail + skip - 1)
+      val head = chain.getOrNull(used + skip - 1)
       if (head == null) 0
       else if (head - start > maxJump) 0
-      else count(head, tail + skip)
+      else count(head, used + skip)
     }
     .fold(0, Long::plus)
-    .also { memo[start to tail] = it }
+    .also { memo[start to used] = it }
 }
 
 count(chain.first(), 1).let(::println)
