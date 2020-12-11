@@ -20,7 +20,7 @@ val seats: Map<Point, Seat> = File("11.input").readLines()
   }
   .associate { it.xy to it }
 
-typealias SeatSelector = (candidate: Seat, state: State, seats: Map<Point, Seat>) -> Map<Point, Seat>
+typealias SeatSelector = (candidate: Seat, state: State, seats: Map<Point, Seat>) -> Sequence<Seat>
 
 fun vectors(): Sequence<Point> =
   sequence {
@@ -31,35 +31,30 @@ fun vectors(): Sequence<Point> =
     }
   }
 
-fun visibleNeighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Map<Point, Seat> {
+fun visibleNeighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Sequence<Seat> {
  return vectors()
    .map { (x, y) ->
-     generateSequence(candidate) seq@{ seat ->
-       if (seat.state != State.Floor && seat != candidate) return@seq null
-       val next = seats[Point(seat.xy.x + x, seat.xy.y + y)]
-       if (next == null) null
-       else next
+     generateSequence(candidate) { seat ->
+       if (seat.state != State.Floor && seat != candidate) null
+       else seats[Point(seat.xy.x + x, seat.xy.y + y)]
      }.last()
    }
-   .filterNotNull()
    .filter { seat -> seat != candidate && seat.state == state }
-   .associate { it.xy to it }
 }
 
-fun neighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Map<Point, Seat> {
+fun neighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Sequence<Seat> {
   return vectors()
     .map { (x, y) -> seats[Point(candidate.xy.x + x, candidate.xy.y + y)] }
     .filterNotNull()
-    .filter { seat -> seat != candidate && seat.state == state }
-    .associate { it.xy to it }
+    .filter { it.state == state }
 }
 
 fun getSequence(selector: SeatSelector, minToEmpty: Int): Sequence<Map<Point, Seat>> =
   generateSequence(seats) { prev ->
     val next = prev.mapValues { (_, seat) ->
       when (seat.state) {
-        State.Occupied -> if (selector(seat, State.Occupied, prev).size >= minToEmpty) seat.copy(state = State.Empty) to true else seat to false
-        State.Empty -> if (selector(seat, State.Occupied, prev).size == 0) seat.copy(state = State.Occupied) to true else seat to false
+        State.Occupied -> if (selector(seat, State.Occupied, prev).count() >= minToEmpty) seat.copy(state = State.Empty) to true else seat to false
+        State.Empty -> if (selector(seat, State.Occupied, prev).count() == 0) seat.copy(state = State.Occupied) to true else seat to false
         State.Floor -> seat to false
       }
     }
