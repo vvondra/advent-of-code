@@ -1,11 +1,14 @@
 import java.io.File
 
-val commands = File("12.input").readLines().map { Pair(it.first(), it.drop(1).toInt()) }
+interface Nav {
+  fun advance(cmd: Pair<Char, Int>): Nav
+  fun distance(): Int
+}
 
-data class ShipNav(val azi: Int, val x: Int, val y: Int) {
+data class ShipNav(val azi: Int, val x: Int, val y: Int) : Nav {
   val azimuths = mapOf(0 to 'N', 90 to 'E', 180 to 'S', 270 to 'W')
 
-  fun advance(cmd: Pair<Char, Int>): ShipNav {
+  override fun advance(cmd: Pair<Char, Int>): ShipNav {
     val (dir, move) = cmd;
 
     return when (dir) {
@@ -19,13 +22,12 @@ data class ShipNav(val azi: Int, val x: Int, val y: Int) {
       else -> throw Exception("Off course")
     }
   }
+
+  override fun distance(): Int = Math.abs(y) + Math.abs(x)
 }
 
-commands.fold(ShipNav(90, 0, 0), ShipNav::advance)
-  .let { println(Math.abs(it.x) + Math.abs(it.y))}
-
-data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int) {
-  fun advance(cmd: Pair<Char, Int>): WaypointNav {
+data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int): Nav {
+  override fun advance(cmd: Pair<Char, Int>): WaypointNav {
     val (dir, move) = cmd;
 
     return when (dir) {
@@ -39,7 +41,13 @@ data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int) {
       else -> throw Exception("Off course")
     }
   }
+
+  override fun distance(): Int = Math.abs(sx) + Math.abs(sy)
 }
 
-commands.fold(WaypointNav(sx = 0, sy = 0, wx = -1, wy = 10), WaypointNav::advance)
-  .let { println(Math.abs(it.sx) + Math.abs(it.sy))}
+val commands = File("12.input").readLines().map { Pair(it.first(), it.drop(1).toInt()) }
+
+fun solution(nav: Nav): Int = commands.fold(nav, Nav::advance).distance()
+
+listOf(ShipNav(90, 0, 0), WaypointNav(sx = 0, sy = 0, wx = -1, wy = 10))
+  .forEach { solution(it).let(::println) }
