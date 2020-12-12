@@ -34,15 +34,7 @@ data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int) {
       'E' -> this.copy(wy = wy + move)
       'W' -> this.copy(wy = wy - move)
       'L' -> advance('R' to 360 - move)
-      'R' -> {
-        when(move) {
-              0 -> this
-              90 -> this.copy(wx = wy, wy = -wx)
-              180 -> this.copy(wx = -wx, wy = -wy)
-              270 -> this.copy(wx = -wy, wy = wx)
-              else -> throw Exception("Off course")
-        }
-      }
+      'R' -> if (move == 0) this else this.copy(wx = wy, wy = -wx).advance('R' to move - 90)
       'F' -> this.copy(sx = sx + wx * move, sy = sy + wy * move)
       else -> throw Exception("Off course")
     }
