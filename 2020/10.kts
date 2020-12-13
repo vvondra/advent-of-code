@@ -25,7 +25,7 @@ fun count(start: Int, used: Int): Long {
       else if (head - start > maxJump) 0
       else count(head, used + skip)
     }
-    .fold(0, Long::plus)
+    .sum()
     .also { memo[start to used] = it }
 }
 
