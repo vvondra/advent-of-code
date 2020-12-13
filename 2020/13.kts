@@ -24,4 +24,3 @@ constraints
       .let { (m * n) to it }
   }
   .let { println(it.second) }
-

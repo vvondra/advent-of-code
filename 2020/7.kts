@@ -1,4 +1,4 @@
-import java.io.File;
+import java.io.File
 
 // {shiny gold={bright lavender=4, striped maroon=1, plaid silver=2}, bright lavender={...}
 val bags = File("7.input").readLines()

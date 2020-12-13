@@ -1,5 +1,4 @@
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 val nums = File("9.input").readLines().map(String::toLong)
 val windowLength = 25
@@ -17,7 +16,7 @@ println(firstInvalid)
 nums.indices
   .map { i -> nums.drop(i) }
   .map {
-    var sum: Long = 0;
+    var sum: Long = 0
     it.takeWhile {
       sum += it
       sum <= firstInvalid
@@ -41,4 +40,3 @@ generateSequence(Triple(0, 0, 0L)) { (i, j, sum) ->
   .let { (i, j, _) -> nums.subList(i, j) }
   .let { (it.minOrNull() ?: 0) + (it.maxOrNull() ?: 0) }
   .let(::println)
-

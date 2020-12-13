@@ -9,7 +9,7 @@ data class ShipNav(val azi: Int, val x: Int, val y: Int) : Nav {
   val azimuths = mapOf(0 to 'N', 90 to 'E', 180 to 'S', 270 to 'W')
 
   override fun advance(cmd: Pair<Char, Int>): ShipNav {
-    val (dir, move) = cmd;
+    val (dir, move) = cmd
 
     return when (dir) {
       'N' -> this.copy(x = x - move)
@@ -26,9 +26,9 @@ data class ShipNav(val azi: Int, val x: Int, val y: Int) : Nav {
   override fun distance(): Int = Math.abs(y) + Math.abs(x)
 }
 
-data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int): Nav {
+data class WaypointNav(val wx: Int, val wy: Int, val sx: Int, val sy: Int) : Nav {
   override fun advance(cmd: Pair<Char, Int>): WaypointNav {
-    val (dir, move) = cmd;
+    val (dir, move) = cmd
 
     return when (dir) {
       'N' -> this.copy(wx = wx - move)

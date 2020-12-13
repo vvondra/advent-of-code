@@ -11,7 +11,6 @@ chain.windowed(2)
   .eachCount()
   .let { println(it[1]!! * it[3]!!) }
 
-
 // Part 2
 var memo = mutableMapOf<Pair<Int, Int>, Long>()
 fun count(start: Int, used: Int): Long {

@@ -15,4 +15,3 @@ expenses
   .filter { p -> (p.password[p.low - 1] == p.letter) xor (p.password[p.high - 1] == p.letter) }
   .count()
   .let(::println)
-

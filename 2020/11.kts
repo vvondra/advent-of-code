@@ -32,14 +32,14 @@ fun vectors(): Sequence<Point> =
   }
 
 fun visibleNeighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Sequence<Seat> {
- return vectors()
-   .map { (x, y) ->
-     generateSequence(candidate) { seat ->
-       if (seat.state != State.Floor && seat != candidate) null
-       else seats[Point(seat.xy.x + x, seat.xy.y + y)]
-     }.last()
-   }
-   .filter { seat -> seat != candidate && seat.state == state }
+  return vectors()
+    .map { (x, y) ->
+      generateSequence(candidate) { seat ->
+        if (seat.state != State.Floor && seat != candidate) null
+        else seats[Point(seat.xy.x + x, seat.xy.y + y)]
+      }.last()
+    }
+    .filter { seat -> seat != candidate && seat.state == state }
 }
 
 fun neighbors(candidate: Seat, state: State, seats: Map<Point, Seat>): Sequence<Seat> {
