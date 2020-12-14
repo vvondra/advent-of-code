@@ -10,7 +10,14 @@
 1. [Passport Processing](./2020/4.kts), validate strings by some criteria, a bit more parsing then #2
 1. [Binary Boarding](./2020/5.kts), following a binary search, finding a gap in a sequence
 1. [Custom Customs](./2020/6.kts), union and intersection of elements in a set
-1. [Custom Customs](./2020/7.kts), counting how many trees contain an element, count number of weighed elements in a tree 
+1. [Handy Haversacks](./2020/7.kts), counting how many trees contain an element, count number of weighed elements in a tree
+1. [Handheld Halting](./2020/8.kts), simulating a VM
+1. [Encoding Error](./2020/9.kts), finding a contiguous sequence summing up to a number
+1. [Adapter Array](./2020/10.kts), counting number of possible paths through a graph with memoization
+1. [Seating Systems](./2020/11.kts), 2D celullar automaton
+1. [Rain Risk](./2020/12.kts), simulation of moving object on a 2D grid
+1. [Shuttle Search](./2020/13.kts), finding an number satysfing a set of linear equations with Modulo
+
 ## 2019
 
 [productboard](https://www.productboard.com/) is a big fan of Typescript, so that made this year's choice quite easy!
