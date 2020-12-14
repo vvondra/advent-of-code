@@ -10,7 +10,7 @@
 1. [Passport Processing](./2020/4.kts), validate strings by some criteria, a bit more parsing then #2
 1. [Binary Boarding](./2020/5.kts), following a binary search, finding a gap in a sequence
 1. [Custom Customs](./2020/6.kts), union and intersection of elements in a set
-1. [Handy Haversacks](./2020/7.kts), counting how many trees contain an element, count number of weighed elements in a tree
+1. [Handy Haversacks](./2020/7.kts), counting how many trees contain an element, count number of weighed elements in a tree 
 1. [Handheld Halting](./2020/8.kts), simulating a VM
 1. [Encoding Error](./2020/9.kts), finding a contiguous sequence summing up to a number
 1. [Adapter Array](./2020/10.kts), counting number of possible paths through a graph with memoization

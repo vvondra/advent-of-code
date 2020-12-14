@@ -7,8 +7,8 @@ timetables.second.map { it to timetables.first % it }
   .minByOrNull { (it.first - it.second) }
   ?.let { println(it.first * (it.first - it.second)) }
 
-val constraints = File("13.input").readLines()
-  .last().split(",").map(String::toIntOrNull)
+val constraints = File("13.input").readLines().last()
+  .split(",").map(String::toIntOrNull)
   .withIndex().filter { it.value != null }
   .map { it.value!! to Math.floorMod(it.value!! - it.index, it.value!!) }
   .map { (a, b) -> a.toLong() to b.toLong() }
