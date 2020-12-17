@@ -13,9 +13,9 @@ enum class State(val char: Char) {
 typealias Point = List<Int>
 data class Cube(val xy: Point, val state: State)
 
-val initial: Map<Point, Cube> = File("17.input").readLines()
+fun initial(dims: Int): Map<Point, Cube> = File("17.input").readLines()
   .withIndex().flatMap { (line, row) ->
-    row.withIndex().map { (col, char) -> Cube(listOf(line, col, 0, 0), State.fromChar(char)!!) }
+    row.withIndex().map { (col, char) -> Cube(listOf(line, col).plus(List(dims - 2, { 0 })), State.fromChar(char)!!) }
   }
   .associate { it.xy to it }
 
@@ -31,13 +31,13 @@ fun neighbors(dims: Int, candidate: Cube, cubes: Map<Point, Cube>): Sequence<Cub
   return vectors(dims)
     .filterNot { it.all { it == 0 } }
     .map { offset ->
-      val point = candidate.xy.zip(offset).map { (a, b) ->  a + b }
-      cubes.getOrDefault(point, Cube(point.plus(List(dims - point.size, { 0 })), State.Inactive))
+      val point = candidate.xy.zip(offset).map { (a, b) -> a + b }
+      cubes.getOrDefault(point, Cube(point, State.Inactive))
     }
 }
 
-fun getSequence(dims: Int): Sequence<Map<Point, Cube>> =
-  generateSequence(initial) { prev ->
+fun getSequence(start: Map<Point, Cube>, dims: Int): Sequence<Map<Point, Cube>> =
+  generateSequence(start) { prev ->
     val expanded = prev.values.fold(prev) { space, cube -> space.plus(neighbors(dims, cube, space).associateBy { it.xy }) }
 
     expanded
@@ -55,5 +55,5 @@ fun getSequence(dims: Int): Sequence<Map<Point, Cube>> =
       }
   }
 
-getSequence(3).elementAt(6).count { it.value.state == State.Active }.let(::println)
-getSequence(4).elementAt(6).count { it.value.state == State.Active }.let(::println)
+getSequence(initial(3), 3).elementAt(6).count { it.value.state == State.Active }.let(::println)
+getSequence(initial(4), 4).elementAt(6).count { it.value.state == State.Active }.let(::println)
