@@ -26,7 +26,6 @@ fun evaluate(expression: String, precedence: Map<Char, Int>): Long {
         while (ops.isNotEmpty() && ops.peek() != '(') {
           values.push(apply(values.pop(), values.pop(), ops.pop()))
         }
-
         if (ops.isNotEmpty()) ops.pop()
       }
       else -> {
@@ -46,46 +45,30 @@ fun evaluate(expression: String, precedence: Map<Char, Int>): Long {
   while (ops.isNotEmpty() && ops.peek() != '(') {
     values.push(apply(values.pop(), values.pop(), ops.pop()))
   }
-
   if (ops.isNotEmpty()) ops.pop()
 
   return values.single()
 }
 
-evaluate("2 * 3 + (4 * 5)", precedenceB)
-
 val test = mapOf(
-  "2 * 3 + (4 * 5)" to 26,
-  "5 + (8 * 3 + 9 + 3 * 4 * 3)" to 437,
-  "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))" to 12240,
-  "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2" to 13632
+  "2 * 3 + (4 * 5)" to (26 to 46),
+  "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))" to (12240 to 669060),
+  "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2" to (13632 to 23340)
 )
 
 test.forEach { (exp, result) ->
-  require(evaluate(exp, precedenceA) == result.toLong()) {
+  val (resultA, resultB) = result
+  require(evaluate(exp, precedenceA) == resultA.toLong()) {
     "$exp should be equal to $result, got ${evaluate(exp, precedenceA)}"
   }
-}
 
-val testB = mapOf(
-  "1 + (2 * 3) + (4 * (5 + 6))" to 51,
-  "2 * 3 + (4 * 5)" to 46,
-  "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))" to 669060,
-  "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2" to 23340
-)
-
-testB.forEach { (exp, result) ->
-  require(evaluate(exp, precedenceB) == result.toLong()) {
+  require(evaluate(exp, precedenceB) == resultB.toLong()) {
     "$exp should be equal to $result, got ${evaluate(exp, precedenceB)}"
   }
 }
 
-File("18.input").readLines()
-  .map { evaluate(it, precedenceA) }
-  .sum()
-  .let(::println)
 
 File("18.input").readLines()
-  .map { evaluate(it, precedenceB) }
-  .sum()
+  .map { evaluate(it, precedenceA) to evaluate(it, precedenceB) }
+  .reduce { (a, i), (b, j) -> a + b to i + j }
   .let(::println)
