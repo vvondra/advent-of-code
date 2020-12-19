@@ -35,16 +35,14 @@ data class Context(val regex: Node, val prev: Node?, val suffix: String)
 
 fun match(rules: Map<Int, Node>, string: String): Boolean {
   val success = "Yeeeees!"
-  fun accept(regex: Node, string: String): String? {
-    //println("R: ${regex.toString().padEnd(20)} S: ${string}")
-
+  fun accept(regex: Node, string: List<String>): List<String> {
     return when (regex) {
-      is Character -> if (string.firstOrNull() == regex.char) string.drop(1) else null
-      is End -> if (string == "") success else null
-      is Or -> regex.refs.map { s -> accept(s, string) }.firstOrNull { it != null }
+      is Character -> string.filter { it.firstOrNull() == regex.char }.map { it.drop(1) }
+      is End -> if (string.contains("")) listOf(success) else emptyList()
+      is Or -> regex.refs.map { s -> accept(s, string) }.flatten().filterNotNull().distinct()
       is Refs -> {
-        regex.seq.fold(string) { acc: String?, i: Int ->
-          if (acc == null) null
+        regex.seq.fold(string) { acc: List<String>, i: Int ->
+          if (acc.isEmpty()) acc
           else accept(rules.get(i)!!, acc)
         }
       }
@@ -52,34 +50,16 @@ fun match(rules: Map<Int, Node>, string: String): Boolean {
     }
   }
 
-  val res = accept(rules.get(0)!!, string);
+  val res = accept(rules.get(0)!!, listOf(string));
 
-  return res != null && res == success
+  return res.contains(success)
 }
 
 inputs.count { match(regexs, it) }.let(::println)
 
-val tests = listOf(
-  "bbabbbbaabaabba",
-  "babbbbaabbbbbabbbbbbaabaaabaaa",
-  "aaabbbbbbaaaabaababaabababbabaaabbababababaaa",
-  "bbbbbbbaaaabbbbaaabbabaaa",
-  "bbbababbbbaaaaaaaabbababaaababaabab",
-  "ababaaaaaabaaab",
-  "ababaaaaabbbaba",
-  "baabbaaaabbaaaababbaababb",
-  "abbbbabbbbaaaababbbbbbaaaababb",
-  "aaaaabbaabaaaaababaa",
-  "aaaabbaabbaaaaaaabbbabbbaaabbaabaaa",
-  "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
-)
-
-
-fun generateLoops(): Map<Int, Node> = mapOf(
-    8 to Or(List(20) { i -> Refs(List(i + 1) { 42 })}),
-    11 to Or(List(20) { i -> Refs(List(i) { 42 } + List(i) { 31 })}),
+val partTwo = mapOf(
+    8 to Or(List(30) { i -> Refs(List(i + 1) { 42 })}),
+    11 to Or(List(30) { i -> Refs(List(i + 1) { 42 } + List(i + 1) { 31 })}),
   )
-val override = regexs.plus(generateLoops())
-println(override)
-tests.forEach { if (!match(override, it)) println("${it} should match") }
+val override = regexs.plus(partTwo)
 inputs.count { match(override, it) }.let(::println)
