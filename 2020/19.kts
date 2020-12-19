@@ -25,13 +25,13 @@ fun parseRules(r: List<String>): Map<Int, Rule> =
 
 fun match(rules: Map<Int, Rule>, string: String): Boolean {
   val success = "Yeeeees!"
-  fun accept(regex: Rule, string: List<String>): List<String> {
+  fun accept(regex: Rule, suffix: List<String>): List<String> {
     return when (regex) {
-      is Character -> string.filter { it.firstOrNull() == regex.char }.map { it.drop(1) }
-      is End -> if (string.contains("")) listOf(success) else emptyList()
-      is Or -> regex.refs.map { s -> accept(s, string) }.flatten().filterNotNull().distinct()
+      is Character -> suffix.filter { it.firstOrNull() == regex.char }.map { it.drop(1) }
+      is End -> if (suffix.contains("")) listOf(success) else emptyList()
+      is Or -> regex.refs.map { s -> accept(s, suffix) }.flatten().filterNotNull().distinct()
       is Seq -> {
-        regex.seq.fold(string) { acc: List<String>, i: Int ->
+        regex.seq.fold(suffix) { acc: List<String>, i: Int ->
           if (acc.isEmpty()) acc
           else accept(rules.get(i)!!, acc)
         }
