@@ -30,8 +30,6 @@ fun parseRules(r: List<String>) =
 
 val regexs = parseRules(regexInputs)
 
-data class Context(val regex: Node, val prev: Node?, val suffix: String)
-
 fun match(rules: Map<Int, Node>, string: String): Boolean {
   val success = "Yeeeees!"
   fun accept(regex: Node, string: List<String>): List<String> {
@@ -56,9 +54,5 @@ fun match(rules: Map<Int, Node>, string: String): Boolean {
 
 inputs.count { match(regexs, it) }.let(::println)
 
-val partTwo = mapOf(
-  8 to Or(List(30) { i -> Refs(List(i + 1) { 42 }) }),
-  11 to Or(List(30) { i -> Refs(List(i + 1) { 42 } + List(i + 1) { 31 }) }),
-)
-val override = regexs.plus(partTwo)
+val override = regexs.plus(parseRules(listOf("8: 42 | 42 8", "11: 42 31 | 42 11 31")))
 inputs.count { match(override, it) }.let(::println)
