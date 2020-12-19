@@ -29,7 +29,7 @@ fun match(rules: Map<Int, Rule>, string: String): Boolean {
     return when (regex) {
       is Character -> suffix.filter { it.firstOrNull() == regex.char }.map { it.drop(1) }
       is End -> if (suffix.contains("")) listOf(success) else emptyList()
-      is Or -> regex.refs.map { s -> accept(s, suffix) }.flatten().filterNotNull().distinct()
+      is Or -> regex.refs.flatMap { s -> accept(s, suffix) }.distinct()
       is Seq -> {
         regex.seq.fold(suffix) { acc: List<String>, i: Int ->
           if (acc.isEmpty()) acc
