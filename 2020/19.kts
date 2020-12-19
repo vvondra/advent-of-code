@@ -2,7 +2,7 @@ import java.io.File
 
 abstract class Rule
 data class Character(val char: Char) : Rule()
-data class Refs(val seq: List<Int>) : Rule()
+data class Seq(val seq: List<Int>) : Rule()
 data class Or(val refs: List<Rule>) : Rule()
 object End : Rule()
 
@@ -17,7 +17,7 @@ fun parseRules(r: List<String>): Map<Int, Rule> =
       Character(value[1])
     } else {
       value.split(" | ")
-        .map { Refs(it.split(" ").map { it.toInt() }) }
+        .map { Seq(it.split(" ").map { it.toInt() }) }
         .let { if (key == 0) it.single().copy(seq = it.single().seq.plus(-1)) else Or(it) }
     }
   }
@@ -30,7 +30,7 @@ fun match(rules: Map<Int, Rule>, string: String): Boolean {
       is Character -> string.filter { it.firstOrNull() == regex.char }.map { it.drop(1) }
       is End -> if (string.contains("")) listOf(success) else emptyList()
       is Or -> regex.refs.map { s -> accept(s, string) }.flatten().filterNotNull().distinct()
-      is Refs -> {
+      is Seq -> {
         regex.seq.fold(string) { acc: List<String>, i: Int ->
           if (acc.isEmpty()) acc
           else accept(rules.get(i)!!, acc)
