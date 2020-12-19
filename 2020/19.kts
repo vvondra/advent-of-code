@@ -13,8 +13,8 @@ val (regexInputs, inputs) = File("19.input").readText()
     it[0].split("\n") to it[1].split("\n").filterNot(String::isEmpty)
   }
 
-val regexs = regexInputs
-  .associate {
+fun parseRules(r: List<String> ) =
+  r.associate {
     val parts = it.split(": ")
     parts[0].toInt() to parts[1]
   }
@@ -24,16 +24,20 @@ val regexs = regexInputs
     } else {
       value.split(" | ")
         .map { Refs(it.split(" ").map { it.toInt() }) }
-        .let { if (key == 0) it.single().copy(seq = it.single().seq.plus(-1)) else Or(it) }
+        .let { if (key == 0) it.single().copy(seq = it.single().seq.plus(-1)) else Or(it.reversed()) }
     }
   }
   .plus(-1 to End)
 
+val regexs = parseRules(regexInputs)
+
 data class Context(val regex: Node, val prev: Node?, val suffix: String)
 
-fun match(start: Node, rules: Map<Int, Node>, string: String): Boolean {
+fun match(rules: Map<Int, Node>, string: String): Boolean {
   val success = "Yeeeees!"
   fun accept(regex: Node, string: String): String? {
+    //println("R: ${regex.toString().padEnd(20)} S: ${string}")
+
     return when (regex) {
       is Character -> if (string.firstOrNull() == regex.char) string.drop(1) else null
       is End -> if (string == "") success else null
@@ -44,16 +48,38 @@ fun match(start: Node, rules: Map<Int, Node>, string: String): Boolean {
           else accept(rules.get(i)!!, acc)
         }
       }
-      else -> throw Exception("What is ${regex}")
+      else -> throw Exception("What is ${regex}?")
     }
   }
 
-  val res = accept(start, string);
+  val res = accept(rules.get(0)!!, string);
 
   return res != null && res == success
 }
 
-inputs.count { match(regexs.get(0)!!, regexs, it) }.let(::println)
+inputs.count { match(regexs, it) }.let(::println)
+
+val tests = listOf(
+  "bbabbbbaabaabba",
+  "babbbbaabbbbbabbbbbbaabaaabaaa",
+  "aaabbbbbbaaaabaababaabababbabaaabbababababaaa",
+  "bbbbbbbaaaabbbbaaabbabaaa",
+  "bbbababbbbaaaaaaaabbababaaababaabab",
+  "ababaaaaaabaaab",
+  "ababaaaaabbbaba",
+  "baabbaaaabbaaaababbaababb",
+  "abbbbabbbbaaaababbbbbbaaaababb",
+  "aaaaabbaabaaaaababaa",
+  "aaaabbaabbaaaaaaabbbabbbaaabbaabaaa",
+  "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
+)
 
 
-
+fun generateLoops(): Map<Int, Node> = mapOf(
+    8 to Or(List(20) { i -> Refs(List(i + 1) { 42 })}),
+    11 to Or(List(20) { i -> Refs(List(i) { 42 } + List(i) { 31 })}),
+  )
+val override = regexs.plus(generateLoops())
+println(override)
+tests.forEach { if (!match(override, it)) println("${it} should match") }
+inputs.count { match(override, it) }.let(::println)
