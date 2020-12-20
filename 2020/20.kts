@@ -22,7 +22,7 @@ data class Tile(val id: Int, val cells: List<Edge>) {
 
     set.addAll(set.map { it.reversed() })
 
-    return set.toList();
+    return set.toList()
   }
 
   fun cycle(): Sequence<Tile> {
@@ -63,10 +63,10 @@ data class Tile(val id: Int, val cells: List<Edge>) {
 
   override fun toString(): String {
     val sb = StringBuilder()
-    sb.appendLine("Tile ${id}:")
+    sb.appendLine("Tile $id:")
     for (i in 0 until cells.size) {
       for (j in 0 until cells.size) {
-        sb.append(if(cells.get(i).get(j)) "#" else ".")
+        sb.append(if (cells.get(i).get(j)) "#" else ".")
       }
       sb.appendLine()
     }
@@ -91,7 +91,6 @@ fun findNext(blacklist: List<Int>, top: Edge?, left: Edge?): Tile {
       it.id !in blacklist && (left == null || it.left() == left) && (top == null || it.top() == top)
     }!!
 }
-
 
 // Put all possible edges in a map and count for each tile how many matching edges it has
 // The tile which have two edges which don't match anything else are the corners
@@ -133,11 +132,14 @@ for (i in 0 until side) {
 }
 
 val tileSize = final[0][0]!!.cells.size
-val stiched = Tile(0, List(side * tileSize) { i ->
-  List (side * tileSize) { j ->
-    final[i / tileSize][j / tileSize]!!.cells[i % tileSize][j % tileSize]
+val stiched = Tile(
+  0,
+  List(side * tileSize) { i ->
+    List(side * tileSize) { j ->
+      final[i / tileSize][j / tileSize]!!.cells[i % tileSize][j % tileSize]
+    }
   }
-})
+)
 
 val monster = listOf(
   "                  # ",
@@ -151,15 +153,16 @@ val monsterRegex = monster.map { r -> "(" + r.replace(" ", "[#.]") + ")" }
 val monsterChars = monster.joinToString("").count { it == '#' }
 
 val result = stiched.cycle().map {
-  println("====")
   val line = it.cells.flatten().map { if (it) '#' else '.' }.joinToString("")
-  val matches = monsterRegex.findAll(line)
-  matches.forEach { println(it.groupValues) }
-  val matchCount = matches.count()
+  var match = monsterRegex.find(line)
+  var matchCount = 0
+  while (match != null) {
+    matchCount++
+    match = monsterRegex.find(line, match.range.start + 1)
+  }
   if (matchCount > 0) {
     line.count { it == '#' } - (matchCount * monsterChars)
   } else 0
 }.sum()
 
 println(result)
-
