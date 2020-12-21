@@ -8,22 +8,10 @@ val tileEdges = tiles.values.associate { it.id to it.edges() }
 
 typealias Edge = List<Boolean>
 data class Tile(val id: Int, val cells: List<Edge>) {
-  fun edges(): List<Edge> {
-    val set = mutableListOf(cells.first(), cells.last())
-
-    set.addAll(
-      cells
-        .map { it.first() to it.last() }
-        .fold(emptyList<Boolean>() to emptyList<Boolean>()) { acc, pair ->
-          acc.first.plus(pair.first) to acc.second.plus(pair.second)
-        }
-        .let { it.toList() }
-    )
-
-    set.addAll(set.map { it.reversed() })
-
-    return set.toList()
-  }
+  fun edges(): List<Edge> =
+    listOf(top(), bottom(), right(), left()).let {
+      it + it.map { it.reversed() }
+    }
 
   fun cycle(): Sequence<Tile> {
     fun rotate(list: List<Edge>): List<Edge> {
