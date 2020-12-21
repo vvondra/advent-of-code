@@ -3,8 +3,8 @@ import java.io.File
 val list = File("21.input").readLines()
   .map { it.split(" (contains ").let { it[0].split(" ") to it[1].dropLast(1).split(", ") } }
 
-val ingredients = list.flatMap { it.first }.distinct()
-val allergens = list.flatMap { it.second }.distinct()
+val ingredients = list.flatMap { it.first }.toSet()
+val allergens = list.flatMap { it.second }.toSet()
 
 fun match(): Map<String, String> {
   var start = ingredients
@@ -12,13 +12,12 @@ fun match(): Map<String, String> {
   while (true) {
     start = allergens.fold(start) { ing, allergen ->
       val res = list.filter { it.second.contains(allergen) }
-        .map { it.first.filter { it in ing } }
-        .reduce { i, j -> i.intersect(j).toList() }
+        .map { it.first.filter { it in ing }.toSet() }
+        .reduce { i, j -> i.intersect(j) }
 
-      println("$allergen $res")
       if (res.size == 1) {
         mapping.put(allergen, res.single())
-        ing.filterNot { it == res.single() }
+        ing.filterNot { it == res.single() }.toSet()
       } else ing
     }
 
@@ -31,7 +30,7 @@ fun match(): Map<String, String> {
 }
 
 val mapping = match()
-val safe = ingredients.toSet() subtract mapping.values.toSet()
+val safe = ingredients subtract mapping.values
 
 list.map { (it.first.toSet() intersect safe).size }.sum().let(::println)
 mapping.entries.sortedBy { it.key }.map { it.value }.joinToString(",").let(::println)

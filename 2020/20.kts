@@ -6,24 +6,15 @@ val tileDefs = File("20.input").readText().split("\n\n")
 val tiles = tileDefs.map(::readTile).associateBy { it.id }
 val tileEdges = tiles.values.associate { it.id to it.edges() }
 
-typealias Edge = List<Boolean>
+typealias Edge = List<Char>
+
 data class Tile(val id: Int, val cells: List<Edge>) {
   fun edges(): List<Edge> =
-    listOf(top(), bottom(), right(), left()).let {
-      it + it.map { it.reversed() }
-    }
+    listOf(top(), bottom(), right(), left()).let { it + it.map { it.reversed() } }
 
-  fun cycle(): Sequence<Tile> {
-    fun rotate(list: List<Edge>): List<Edge> {
-      val size = list.size
-      var dest = MutableList(size) { MutableList(size) { false } }
-      for (i in 0 until size) {
-        for (j in 0 until size) {
-          dest[i][j] = list.get(size - 1 - j).get(i)
-        }
-      }
-
-      return dest.toList().map { it.toList() }
+  fun variations(): Sequence<Tile> {
+    fun rotate(list: List<Edge>): List<Edge> = list.run {
+      List(size) { i -> List (size) { j -> get(size - 1 - j).get(i) } }
     }
 
     return sequence {
@@ -45,16 +36,14 @@ data class Tile(val id: Int, val cells: List<Edge>) {
   fun right(): Edge = cells.map { it.last() }
   fun bottom(): Edge = cells.last()
 
-  fun stripBorder(): Tile {
-    return this.copy(cells = cells.drop(1).dropLast(1).map { it.drop(1).dropLast(1) })
-  }
+  fun stripBorder(): Tile = this.copy(cells = cells.drop(1).dropLast(1).map { it.drop(1).dropLast(1) })
 
   override fun toString(): String {
     val sb = StringBuilder()
     sb.appendLine("Tile $id:")
     for (i in 0 until cells.size) {
       for (j in 0 until cells.size) {
-        sb.append(if (cells.get(i).get(j)) "#" else ".")
+        sb.append(cells.get(i).get(j))
       }
       sb.appendLine()
     }
@@ -68,13 +57,13 @@ fun readTile(s: String): Tile {
 
   return Tile(
     split.first().drop(5).dropLast(1).toInt(),
-    split.drop(1).filter(String::isNotEmpty).map { it.toList().map { it == '#' } }
+    split.drop(1).filter(String::isNotEmpty).map { it.toList() }
   )
 }
 
 fun findNext(blacklist: List<Int>, top: Edge?, left: Edge?): Tile {
   return tiles.values
-    .flatMap { it.cycle() }
+    .flatMap { it.variations() }
     .find {
       it.id !in blacklist && (left == null || it.left() == left) && (top == null || it.top() == top)
     }!!
@@ -90,15 +79,14 @@ val corners = tileEdgePairingCounts.filterValues { it.getOrDefault(1, 0) == max 
 
 println(corners.keys.map(Int::toLong).reduce(Long::times))
 
+// Part 2
 val init = tiles.get(corners.keys.first())!!; // this will be our top left corner
-val corner = init.cycle().find {
-  edgeCounts[it.top()]!! == 1 && edgeCounts[it.left()]!! == 1
-}!!
+val corner = init.variations().find { edgeCounts[it.top()]!! == 1 && edgeCounts[it.left()]!! == 1 }!!
 
 val side = tiles.size.let { Math.sqrt(it + 0.0).toInt() }
+var blacklist = mutableListOf(corner.id)
 var final = MutableList(side) { MutableList<Tile?>(side) { null } }
 final[0][0] = corner
-var blacklist = mutableListOf(corner.id)
 
 for (i in 0 until side) {
   for (j in 0 until side) {
@@ -138,19 +126,21 @@ val padding = (side * tileSize) - monster.first().length
 val monsterRegex = monster.map { r -> "(" + r.replace(" ", "[#.]") + ")" }
   .joinToString("[#.]".repeat(padding))
   .let { Regex(it) }
-val monsterChars = monster.joinToString("").count { it == '#' }
+val charsInMonster = monster.joinToString("").count { it == '#' }
 
-val result = stiched.cycle().map {
-  val line = it.cells.flatten().map { if (it) '#' else '.' }.joinToString("")
-  var match = monsterRegex.find(line)
-  var matchCount = 0
-  while (match != null) {
-    matchCount++
-    match = monsterRegex.find(line, match.range.start + 1)
+val result = stiched.variations()
+  .map {
+    val line = it.cells.flatten().joinToString("")
+    var match = monsterRegex.find(line)
+    var matchCount = 0
+    while (match != null) {
+      matchCount++
+      match = monsterRegex.find(line, match.range.start + 1)
+    }
+    if (matchCount > 0) {
+      line.count { it == '#' } - (matchCount * charsInMonster)
+    } else 0
   }
-  if (matchCount > 0) {
-    line.count { it == '#' } - (matchCount * monsterChars)
-  } else 0
-}.sum()
+  .sum()
 
 println(result)
