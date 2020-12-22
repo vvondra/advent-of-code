@@ -16,7 +16,7 @@ fun seq(start: List<Int>): Sequence<Step> {
   }
 }
 
-val input = listOf(19,20,14,0,9,1)
+val input = listOf(19, 20, 14, 0, 9, 1)
 
 seq(input).find { it.turn == 2021 }!!.let { println(it.prev) }
 seq(input).find { it.turn == 30000001 }!!.let { println(it.prev) }
