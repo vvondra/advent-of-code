@@ -31,7 +31,7 @@ fun recursiveCombat(playerA: List<Int>, playerB: List<Int>): List<Int> {
 
     while (deckA.isNotEmpty() && deckB.isNotEmpty()) {
       if (states.contains(deckA to deckB)) {
-        return Turn(true, deckA, deckB);
+        return Turn(true, deckA, deckB)
       }
       states.add(deckA to deckB)
 

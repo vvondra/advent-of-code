@@ -14,7 +14,7 @@ data class Tile(val id: Int, val cells: List<Edge>) {
 
   fun variations(): Sequence<Tile> {
     fun rotate(list: List<Edge>): List<Edge> = list.run {
-      List(size) { i -> List (size) { j -> get(size - 1 - j).get(i) } }
+      List(size) { i -> List(size) { j -> get(size - 1 - j).get(i) } }
     }
 
     return sequence {

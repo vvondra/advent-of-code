@@ -7,7 +7,7 @@ fun seq(start: List<Int>): Sequence<Step> {
     start.last()
   )
 
-  return generateSequence(initial) { (history, turn, _, beforeThat)  ->
+  return generateSequence(initial) { (history, turn, _, beforeThat) ->
     val spoken = if (beforeThat == null) 0 else turn - 1 - beforeThat
     val spokenBefore = history[spoken]
     history.put(spoken, turn)

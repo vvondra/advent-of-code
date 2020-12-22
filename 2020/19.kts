@@ -12,16 +12,16 @@ val (regexInputs, inputs) = File("19.input").readText()
 
 fun parseRules(r: List<String>): Map<Int, Rule> =
   r.associate { it.split(": ").let { it[0].toInt() to it[1] } }
-  .mapValues { (key, value) ->
-    if (value.startsWith("\"")) {
-      Literal(value[1])
-    } else {
-      value.split(" | ")
-        .map { Concat(it.split(" ").map { it.toInt() }) }
-        .let { if (key == 0) it.single().copy(seq = it.single().seq.plus(-1)) else Union(it) }
+    .mapValues { (key, value) ->
+      if (value.startsWith("\"")) {
+        Literal(value[1])
+      } else {
+        value.split(" | ")
+          .map { Concat(it.split(" ").map { it.toInt() }) }
+          .let { if (key == 0) it.single().copy(seq = it.single().seq.plus(-1)) else Union(it) }
+      }
     }
-  }
-  .plus(-1 to End)
+    .plus(-1 to End)
 
 fun match(rules: Map<Int, Rule>, string: String): Boolean {
   val success = "Yeeeees!"

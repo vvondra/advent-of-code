@@ -67,7 +67,6 @@ test.forEach { (exp, result) ->
   }
 }
 
-
 File("18.input").readLines()
   .map { evaluate(it, precedenceA) to evaluate(it, precedenceB) }
   .reduce { (a, i), (b, j) -> a + b to i + j }
