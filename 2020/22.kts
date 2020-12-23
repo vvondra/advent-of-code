@@ -31,7 +31,7 @@ fun recursiveCombat(playerA: List<Int>, playerB: List<Int>): List<Int> {
 
     while (deckA.isNotEmpty() && deckB.isNotEmpty()) {
       if (states.contains(deckA to deckB)) {
-        return Turn(true, deckA, deckB)
+        return Turn(aWins = true, deckA, deckB)
       }
       states.add(deckA to deckB)
 
@@ -56,7 +56,7 @@ fun recursiveCombat(playerA: List<Int>, playerB: List<Int>): List<Int> {
       }
     }
 
-    return Turn(deckA.isNotEmpty(), deckA, deckB)
+    return Turn(aWins = deckA.isNotEmpty(), deckA, deckB)
   }
 
   val (aWins, resultA, resultB) = subgame(playerA, playerB)
