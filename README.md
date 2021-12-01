@@ -1,5 +1,11 @@
 # advent-of-code
 
+## 2021
+
+Same as last year, going for Kotlin
+
+1. [Sonar Sweep](./2021/01.kts), comparing and summing elements in sliding windows
+
 ## 2020
 
 [productboard](https://www.productboard.com/) is heavily investing into Kotlin, so that made this year's choice quite easy!
