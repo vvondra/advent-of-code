@@ -5,6 +5,7 @@
 Same as last year, going for Kotlin
 
 1. [Sonar Sweep](./2021/01.kts), comparing and summing elements in sliding windows
+2. [Dive!](./2021/02.kts), executing commands producing a final 2D location 
 
 ## 2020
 
