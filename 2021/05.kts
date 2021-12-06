@@ -12,11 +12,7 @@ data class Line(val a: XY, val b: XY) {
         } else if (a.y == b.y) {
             (min(a.x, b.x)..max(a.x, b.x)).map { XY(it, a.y) }.toSet()
         } else if (withDiagonals) {
-            // workaround for some kotlin bug trying to define this as infix fun on Int
-            val xRange = IntProgression.fromClosedRange(a.x, b.x, if (a.x > b.x) -1 else 1)
-            val yRange = IntProgression.fromClosedRange(a.y, b.y, if (a.y > b.y) -1 else 1)
-
-            xRange.zip(yRange)
+            (a.x towards b.x).zip(a.y towards b.y)
                 .map { XY(it.first, it.second) }
                 .toSet()
         } else emptySet()
