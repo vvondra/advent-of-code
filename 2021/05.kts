@@ -6,20 +6,19 @@ infix fun Int.towards(to: Int) = IntProgression.fromClosedRange(this, to, if (th
 
 data class XY(val x: Int, val y: Int)
 data class Line(val a: XY, val b: XY) {
-    fun points(withDiagonals: Boolean): Set<XY> =
-        if (a.x == b.x) {
-            (min(a.y, b.y)..max(a.y, b.y)).map { XY(a.x, it) }.toSet()
-        } else if (a.y == b.y) {
-            (min(a.x, b.x)..max(a.x, b.x)).map { XY(it, a.y) }.toSet()
-        } else if (withDiagonals) {
-            // workaround for some kotlin bug trying to define this as infix fun on Int
+    fun points(withDiagonals: Boolean): Set<XY> = when {
+        a.x == b.x -> (min(a.y, b.y)..max(a.y, b.y)).map { XY(a.x, it) }.toSet()
+        a.y == b.y -> (min(a.x, b.x)..max(a.x, b.x)).map { XY(it, a.y) }.toSet()
+        withDiagonals -> {
             val xRange = IntProgression.fromClosedRange(a.x, b.x, if (a.x > b.x) -1 else 1)
             val yRange = IntProgression.fromClosedRange(a.y, b.y, if (a.y > b.y) -1 else 1)
 
-            xRange.zip(yRange)
+            (xRange zip yRange)
                 .map { XY(it.first, it.second) }
                 .toSet()
-        } else emptySet()
+        }
+        else -> emptySet()
+    }
 }
 
 val input = File("05.input")
