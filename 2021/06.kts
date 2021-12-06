@@ -1,30 +1,30 @@
 import java.io.File
+import java.math.BigInteger
 
 val input = File("06.input")
     .readText()
     .split(",").map(String::toInt)
     .groupingBy { it }.eachCount()
+    .mapValues { BigInteger.valueOf(it.value.toLong()) }
 
 val CYCLE = 6
 val NEW_FISH_CYCLE = 2
 
-val last = generateSequence(input) { freqs ->
-    freqs.keys.minOrNull()?.let { nextHatch ->
-        freqs
-            .toMutableMap()
-            .apply {
-                this.put(CYCLE, this.get(0)!!)
-                this.put(CYCLE + NEW_FISH_CYCLE, this.get(0)!!)
-                this.remove(0)
-            }
-            .mapKeys { entry -> entry.key - nextHatch }
-            .toMutableMap()
+fun Iterable<BigInteger>.sum(): BigInteger = this.reduce { acc, integer -> acc + integer }
 
-            .toMap()
-            .also {
-                println(it)
-            }
-    }
-}
 
-println(last.elementAt(19).values.sum())
+fun fishAtDay(day: Int): BigInteger = generateSequence(input) { freqs ->
+    freqs
+        .mapKeys { entry -> entry.key - 1 }
+        .toMutableMap()
+        .apply {
+            if (this.containsKey(-1)) {
+                this.merge(CYCLE, this[-1]!!) { a, b -> a + b }
+                this.merge(CYCLE + NEW_FISH_CYCLE, this[-1]!!) { a, b -> a + b }
+                this.remove(-1)
+            }
+        }
+}.elementAt(day).values.sum()
+
+println(fishAtDay(80))
+println(fishAtDay(256))
