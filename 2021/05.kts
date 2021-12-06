@@ -2,6 +2,8 @@ import java.io.File
 import java.lang.Math.max
 import java.lang.Math.min
 
+infix fun Int.towards(to: Int) = IntProgression.fromClosedRange(this, to, if (this > to) -1 else 1)
+
 data class XY(val x: Int, val y: Int)
 data class Line(val a: XY, val b: XY) {
     fun points(withDiagonals: Boolean): Set<XY> =
@@ -32,9 +34,7 @@ fun overlaps(lines: List<Line>, withDiagonals: Boolean = false): Int = mutableMa
     .apply {
         lines
             .flatMap { it.points(withDiagonals) }
-            .forEach { xy ->
-                this.merge(xy, 1) { a, b -> a + b }
-            }
+            .forEach { xy -> this.merge(xy, 1) { a, b -> a + b } }
     }
     .count { it.value > 1 }
 
