@@ -28,9 +28,9 @@ val transforms: List<(XYZ) -> XYZ> = listOf<(XYZ) -> XYZ>(
 
 val obs = File("19.input").readText().split("\n\n")
     .map(String::trim).map(String::lines)
-    .map { it.drop(1).map { it.split(",").let { XYZ(it[0].toInt(), it[1].toInt(), it[2].toInt() ) } } }
+    .map { it.drop(1).map { it.split(",").let { XYZ(it[0].toInt(), it[1].toInt(), it[2].toInt() ) } }.toSet() }
 
-fun findMapping(first: List<XYZ>, second: List<XYZ>): ((XYZ) -> XYZ)? {
+fun findMapping(first: Set<XYZ>, second: Set<XYZ>): Pair<(XYZ) -> XYZ, XYZ>? {
     first.forEach { base ->
         second.forEach { other ->
             // I assume other = base in all transformations
@@ -41,7 +41,7 @@ fun findMapping(first: List<XYZ>, second: List<XYZ>): ((XYZ) -> XYZ)? {
                 second.count { testOther -> first.contains(mapping(testOther) + translation) }
                     .let {
                         if (it >= 12) {
-                            return fun(xyz: XYZ): XYZ { return mapping(xyz) + translation }
+                            return fun(xyz: XYZ): XYZ { return mapping(xyz) + translation } to translation
                         }
                     }
             }
@@ -51,15 +51,17 @@ fun findMapping(first: List<XYZ>, second: List<XYZ>): ((XYZ) -> XYZ)? {
     return null
 }
 
-fun explore(): Map<Int, (XYZ) -> XYZ> {
+fun explore(): Pair<Map<Int, (XYZ) -> XYZ>, Set<XYZ>> {
     var remaining = (1 until obs.size).toSet()
     var mappings: Map<Int, (XYZ) -> XYZ> = mapOf(0 to { it })
+    var sensors = setOf(XYZ(0, 0, 0))
     while (remaining.isNotEmpty()) {
         remaining.forEach rem@ { rem ->
             mappings.forEach { (start, mapper) ->
                 val mapping = findMapping(obs[start], obs[rem])
                 if (mapping != null) {
-                    mappings += rem to fun(xyz: XYZ): XYZ { return mapper(mapping(xyz)) }
+                    mappings += rem to fun(xyz: XYZ): XYZ { return mapper(mapping.first(xyz)) }
+                    sensors += mapper(mapping.second)
                     remaining -= rem
                     return@rem
                 }
@@ -67,12 +69,12 @@ fun explore(): Map<Int, (XYZ) -> XYZ> {
         }
     }
 
-    return mappings
+    return mappings to sensors
 }
 
-val final = explore()
+val (final, sensors) = explore()
 
-val intersect = obs.withIndex().map { (i, o) -> o.map(final.getValue(i)).toSet() }
-    .reduce { a, b -> a.union(b) }
+obs.withIndex().map { (i, o) -> o.map(final.getValue(i)).toSet() }.reduce(Set<XYZ>::union)
+    .let { println(it.size) }
 
-println(intersect.size)
+sensors.flatMap { s -> sensors.map(s::manhattan) }.maxOrNull()?.let(::println)
