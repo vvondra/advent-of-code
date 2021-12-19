@@ -14,7 +14,7 @@ val transforms: List<(XYZ) -> XYZ> = listOf<(XYZ) -> XYZ>(
         { a -> XYZ(a.y, -a.x, a.z) },
         { a -> XYZ(-a.x, -a.y, a.z) },
         { a -> XYZ(-a.y, a.x, a.z) },
-        { a -> XYZ(a.z, -a.x, a.y) },
+        { a -> XYZ(a.z, a.y, -a.x) },
         { a -> XYZ(-a.z, a.y, a.x) },
     ).flatMap { t ->
         (1..4).map<Int, (XYZ) -> XYZ> { rotations ->
@@ -51,36 +51,10 @@ fun findMapping(first: List<XYZ>, second: List<XYZ>): ((XYZ) -> XYZ)? {
     return null
 }
 
-fun explore(): Map<Int, (XYZ) -> XYZ> = explore(0, (1 until obs.size).toSet(), { it }) + (0 to { it })
-fun explore(scanner: Int, scanners: Set<Int>, mapper: (XYZ) -> XYZ): Map<Int, (XYZ) -> XYZ> {
-    if (scanners.isEmpty()) {
-        return emptyMap()
-    }
-
-    var mappings = scanners.asSequence()
-        .map { it to findMapping(obs[scanner], obs[it]) }
-        .filterNot { it.second == null }
-        .map { (a, b) -> a to fun(xyz: XYZ): XYZ { return mapper(b!!(xyz)) } }
-        .toMap()
-
-    var remaining = scanners.minus(mappings.keys)
-
-    while (remaining.isNotEmpty() && mappings.isNotEmpty()) {
-        println(remaining to mappings.keys)
-        mappings.keys.forEach { explored ->
-            mappings += explore(explored, remaining, mappings[explored]!!)
-            remaining -= mappings.keys
-        }
-    }
-
-    return mappings
-}
-
-fun explore2(): Map<Int, (XYZ) -> XYZ> {
+fun explore(): Map<Int, (XYZ) -> XYZ> {
     var remaining = (1 until obs.size).toSet()
     var mappings: Map<Int, (XYZ) -> XYZ> = mapOf(0 to { it })
     while (remaining.isNotEmpty()) {
-        println(remaining to mappings.keys)
         remaining.forEach rem@ { rem ->
             mappings.forEach { (start, mapper) ->
                 val mapping = findMapping(obs[start], obs[rem])
@@ -96,7 +70,7 @@ fun explore2(): Map<Int, (XYZ) -> XYZ> {
     return mappings
 }
 
-val final = explore2()
+val final = explore()
 
 val intersect = obs.withIndex().map { (i, o) -> o.map(final.getValue(i)).toSet() }
     .reduce { a, b -> a.union(b) }
