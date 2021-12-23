@@ -1,6 +1,7 @@
 import java.io.File
 import java.util.function.BiFunction
 
+typealias Mapping = (XYZ) -> XYZ
 data class XYZ(val x: Int, val y: Int, val z: Int) {
     fun manhattan(other: XYZ) = Math.abs(x - other.x) + Math.abs(y - other.y) + Math.abs(z - other.z)
     operator fun minus(other: XYZ) = XYZ(x - other.x, y - other.y, z - other.z)
@@ -9,7 +10,7 @@ data class XYZ(val x: Int, val y: Int, val z: Int) {
     fun rotate(): XYZ = XYZ(x, z, -y)
 }
 
-val transforms: List<(XYZ) -> XYZ> = listOf<(XYZ) -> XYZ>(
+val transforms: List<Mapping> = listOf<Mapping>(
         { a -> a },
         { a -> XYZ(a.y, -a.x, a.z) },
         { a -> XYZ(-a.x, -a.y, a.z) },
@@ -17,7 +18,7 @@ val transforms: List<(XYZ) -> XYZ> = listOf<(XYZ) -> XYZ>(
         { a -> XYZ(a.z, a.y, -a.x) },
         { a -> XYZ(-a.z, a.y, a.x) },
     ).flatMap { t ->
-        (1..4).map<Int, (XYZ) -> XYZ> { rotations ->
+        (1..4).map<Int, Mapping> { rotations ->
             { xyz ->
                 var r = t(xyz)
                 for (i in 1..rotations) r = r.rotate()
@@ -30,7 +31,7 @@ val obs = File("19.input").readText().split("\n\n")
     .map(String::trim).map(String::lines)
     .map { it.drop(1).map { it.split(",").let { XYZ(it[0].toInt(), it[1].toInt(), it[2].toInt() ) } }.toSet() }
 
-fun findMapping(first: Set<XYZ>, second: Set<XYZ>): Pair<(XYZ) -> XYZ, XYZ>? {
+fun findMapping(first: Set<XYZ>, second: Set<XYZ>): Pair<Mapping, XYZ>? {
     first.forEach { base ->
         second.forEach { other ->
             // I assume other = base in all transformations
@@ -51,9 +52,9 @@ fun findMapping(first: Set<XYZ>, second: Set<XYZ>): Pair<(XYZ) -> XYZ, XYZ>? {
     return null
 }
 
-fun explore(): Pair<Map<Int, (XYZ) -> XYZ>, Set<XYZ>> {
+fun explore(): Pair<Map<Int, Mapping>, Set<XYZ>> {
     var remaining = (1 until obs.size).toSet()
-    var mappings: Map<Int, (XYZ) -> XYZ> = mapOf(0 to { it })
+    var mappings: Map<Int, Mapping> = mapOf(0 to { it })
     var sensors = setOf(XYZ(0, 0, 0))
     while (remaining.isNotEmpty()) {
         remaining.forEach rem@ { rem ->
