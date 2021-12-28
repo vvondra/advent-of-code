@@ -32,6 +32,8 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
     // It tries to put a lower bound on the additional cost this solution will need to get to final state
     // I simply for each pod out of home location take the shortest path if there were no blockers in its way
     fun remainingEstimatedCost(pods: State) = when {
+        // safeguard for thrashing scenario - scenario when you move a pod more than 20 times is unlikely
+        steps > 20 -> 10000
         // stay home or move out for another different pod under this guy
         isHome() -> when {
             hasOtherUnderneath(pods) -> (row + 2 + 1) * costPerStep()
@@ -40,7 +42,7 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
         // just move horizontally and one down
         inHallway() -> abs(col - getHome()) * costPerStep() + costPerStep()
         // in somebody elses home
-        else -> abs(col - getHome()) * costPerStep() +  2 * row * costPerStep()
+        else -> abs(col - getHome()) * costPerStep() + 2 * row * costPerStep()
     }
 
     companion object {
@@ -51,8 +53,12 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
 
 infix fun Int.towards(to: Int) = IntProgression.fromClosedRange(this, to, if (this > to) -1 else 1)
 
+fun State.inversions() = this.map { pod ->
+    this.count { it.col == pod.col && it.row > pod.row && it.char != pod.char && !it.isHome() }
+}.sum()
 fun State.totalEstimatedCost() = this.sumOf { it.totalEstimatedCost(this) }
 fun State.remainingEstimatedCost() = this.sumOf { it.remainingEstimatedCost(this) }
+fun State.intermediateCost() = this.sumOf { it.intermediateCost() }
 
 // This needs refactoring badly
 fun State.candidateMoves() = this.flatMap { pod ->
@@ -114,6 +120,14 @@ fun render(state: State) {
         print(state.find { it.col == i && it.row == 2 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
     }
     println()
+    (-1..11).forEach { i ->
+        print(state.find { it.col == i && it.row == 3 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
+    }
+    println()
+    (-1..11).forEach { i ->
+        print(state.find { it.col == i && it.row == 4 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
+    }
+    println()
     println("  #########")
 }
 
@@ -121,15 +135,29 @@ fun render(state: State) {
 fun explore(): State? {
     var upperBound = Int.MAX_VALUE
     var bestKnown: State? = null
-    val frontier = PriorityQueue<State> { a, b -> a.totalEstimatedCost() - b.totalEstimatedCost() }
+    val frontier = PriorityQueue<State> { a, b -> a.inversions() - b.inversions() }
+    val visited = mutableMapOf(input to 0)
+
     frontier.add(input)
 
+    var i = 0
     while (frontier.isNotEmpty()) {
         val next = frontier.remove()
         val remainingCost = next.remainingEstimatedCost()
+        visited.put(next, next.intermediateCost())
+        /*if (i++ % 1000 == 0) {
+            println(i)
+
+        }
+        if (i % 100000 == 0) {
+            render(next)
+            println(i)
+        }*/
+
         if (remainingCost == 0) {
             val totalCost = next.totalEstimatedCost()
             if (totalCost < upperBound) {
+                println(totalCost)
                 upperBound = totalCost
                 bestKnown = next
             }
@@ -138,8 +166,10 @@ fun explore(): State? {
                 // TODO: 900 is a correction for the fact that my heuristic is not great
                 // it needs debugging where I overshoot and keep the heuristic to be always lower than min possible real cost
                 // ideally there is no constant here
-                if (candidate.totalEstimatedCost() - 900 <= upperBound) {
-                    frontier.add(candidate)
+                if (candidate.totalEstimatedCost() - 4000 <= upperBound) {
+                    if (!visited.containsKey(candidate) || visited.getValue(candidate) > candidate.intermediateCost()) {
+                        frontier.add(candidate)
+                    }
                 }
             }
         }
