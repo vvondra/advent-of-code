@@ -42,7 +42,7 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
         // just move horizontally and one down
         inHallway() -> abs(col - getHome()) * costPerStep() + costPerStep()
         // in somebody elses home
-        else -> abs(col - getHome()) * costPerStep() + 2 * row * costPerStep()
+        else -> abs(col - getHome()) * costPerStep() + (row + 1) * costPerStep()
     }
 
     companion object {
@@ -140,19 +140,10 @@ fun explore(): State? {
 
     frontier.add(input)
 
-    var i = 0
     while (frontier.isNotEmpty()) {
         val next = frontier.remove()
         val remainingCost = next.remainingEstimatedCost()
         visited.put(next, next.intermediateCost())
-        /*if (i++ % 1000 == 0) {
-            println(i)
-
-        }
-        if (i % 100000 == 0) {
-            render(next)
-            println(i)
-        }*/
 
         if (remainingCost == 0) {
             val totalCost = next.totalEstimatedCost()
@@ -166,7 +157,7 @@ fun explore(): State? {
                 // TODO: 900 is a correction for the fact that my heuristic is not great
                 // it needs debugging where I overshoot and keep the heuristic to be always lower than min possible real cost
                 // ideally there is no constant here
-                if (candidate.totalEstimatedCost() - 4000 <= upperBound) {
+                if (candidate.totalEstimatedCost() <= upperBound) {
                     if (!visited.containsKey(candidate) || visited.getValue(candidate) > candidate.intermediateCost()) {
                         frontier.add(candidate)
                     }
