@@ -29,8 +29,10 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
     fun totalEstimatedCost(pods: State) = remainingEstimatedCost(pods) + intermediateCost()
 
     // Important piece of code for branch and bound
-    // It tries to put a lower bound on the additional cost this solution will need to get to final state
+    // It puts lower bound on the additional cost this solution will need to get to final state
+    // Cannot be higher than final cost (will break branch and bound)
     // I simply for each pod out of home location take the shortest path if there were no blockers in its way
+    // and assume it will only have to go to first cell of its home for those reasons
     fun remainingEstimatedCost(pods: State) = when {
         // safeguard for thrashing scenario - scenario when you move a pod more than 20 times is unlikely
         steps > 20 -> 10000
@@ -53,9 +55,8 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
 
 infix fun Int.towards(to: Int) = IntProgression.fromClosedRange(this, to, if (this > to) -1 else 1)
 
-fun State.inversions() = this.map { pod ->
-    this.count { it.col == pod.col && it.row > pod.row && it.char != pod.char && !it.isHome() }
-}.sum()
+// costs and heuristics
+fun State.inversions() = this.map { pod -> this.count { it.col == pod.col && it.row > pod.row && it.char != pod.char && !it.isHome() } }.sum()
 fun State.totalEstimatedCost() = this.sumOf { it.totalEstimatedCost(this) }
 fun State.remainingEstimatedCost() = this.sumOf { it.remainingEstimatedCost(this) }
 fun State.intermediateCost() = this.sumOf { it.intermediateCost() }
@@ -112,20 +113,11 @@ fun render(state: State) {
         print(state.find { it.col == i && it.inHallway() }?.let { it.char } ?: '.')
     }
     println("#")
-    (-1..11).forEach { i ->
-        print(state.find { it.col == i && it.row == 1 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
-    }
-    println()
-    (-1..11).forEach { i ->
-        print(state.find { it.col == i && it.row == 2 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
-    }
-    println()
-    (-1..11).forEach { i ->
-        print(state.find { it.col == i && it.row == 3 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
-    }
-    println()
-    (-1..11).forEach { i ->
-        print(state.find { it.col == i && it.row == 4 }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
+    (1..4).forEach { j ->
+        (-1..11).forEach { i ->
+            print(state.find { it.col == i && it.row == j }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
+        }
+        println()
     }
     println()
     println("  #########")
@@ -154,9 +146,6 @@ fun explore(): State? {
             }
         } else {
             next.candidateMoves().forEach { candidate ->
-                // TODO: 900 is a correction for the fact that my heuristic is not great
-                // it needs debugging where I overshoot and keep the heuristic to be always lower than min possible real cost
-                // ideally there is no constant here
                 if (candidate.totalEstimatedCost() <= upperBound) {
                     if (!visited.containsKey(candidate) || visited.getValue(candidate) > candidate.intermediateCost()) {
                         frontier.add(candidate)
@@ -171,8 +160,6 @@ fun explore(): State? {
 
 val elapsed = measureTimeMillis {
     explore()?.let {
-        //render(it)
-        //it.forEach(::println)
         println(it.totalEstimatedCost())
     }
 }
