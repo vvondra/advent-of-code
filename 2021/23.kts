@@ -18,15 +18,16 @@ val input: State = File("23.input")
 val maxRow = input.maxOf { it.row }
 
 data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
-    fun costPerStep() = costs.getValue(char)
-    fun intermediateCost() = costPerStep() * steps
-    fun getHome() = home.getValue(char)
-    fun isHome() = col == getHome()
-    fun isInOtherHome() = !isHome() && !inHallway()
-    fun inHallway() = row == 0
+    val costPerStep = costs.getValue(char)
+    val intermediateCost = costPerStep * steps
+    val home = homeCol.getValue(char)
+    val isHome = col == home
+    val inHallway = row == 0
+    val isInOtherHome = !isHome && !inHallway
+
     fun isTopmost(pods: State) = row < 2 || row == pods.filter { it.col == col }.minOf { it.row }
     fun hasOtherUnderneath(pods: State) = pods.any { it.col == col && it.row > row && it.char != char }
-    fun totalEstimatedCost(pods: State) = remainingEstimatedCost(pods) + intermediateCost()
+    fun totalEstimatedCost(pods: State) = remainingEstimatedCost(pods) + intermediateCost
 
     // Important piece of code for branch and bound
     // It puts lower bound on the additional cost this solution will need to get to final state
@@ -37,18 +38,18 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
         // safeguard for thrashing scenario - scenario when you move a pod more than 20 times is unlikely
         steps > 20 -> 10000
         // stay home or move out for another different pod under this guy
-        isHome() -> when {
-            hasOtherUnderneath(pods) -> (row + 2 + 1) * costPerStep()
+        isHome -> when {
+            hasOtherUnderneath(pods) -> (row + 2 + 1) * costPerStep
             else -> 0
         }
         // just move horizontally and one down
-        inHallway() -> abs(col - getHome()) * costPerStep() + costPerStep()
+        inHallway -> abs(col - home) * costPerStep + costPerStep
         // in somebody elses home
-        else -> abs(col - getHome()) * costPerStep() + (row + 1) * costPerStep()
+        else -> abs(col - home) * costPerStep + (row + 1) * costPerStep
     }
 
     companion object {
-        val home = mapOf('A' to 2, 'B' to 4, 'C' to 6, 'D' to 8)
+        val homeCol = mapOf('A' to 2, 'B' to 4, 'C' to 6, 'D' to 8)
         val costs = mapOf('A' to 1, 'B' to 10, 'C' to 100, 'D' to 1000)
     }
 }
@@ -56,17 +57,17 @@ data class Pod(val char: Char, val row: Int, val col: Int, val steps: Int = 0) {
 infix fun Int.towards(to: Int) = IntProgression.fromClosedRange(this, to, if (this > to) -1 else 1)
 
 // costs and heuristics
-fun State.inversions() = this.map { pod -> this.count { it.col == pod.col && it.row > pod.row && it.char != pod.char && !it.isHome() } }.sum()
+fun State.inversions() = this.map { pod -> this.count { it.col == pod.col && it.row > pod.row && it.char != pod.char && !it.isHome } }.sum()
 fun State.totalEstimatedCost() = this.sumOf { it.totalEstimatedCost(this) }
 fun State.remainingEstimatedCost() = this.sumOf { it.remainingEstimatedCost(this) }
-fun State.intermediateCost() = this.sumOf { it.intermediateCost() }
+fun State.intermediateCost() = this.sumOf { it.intermediateCost }
 
 // This needs refactoring badly
 fun State.candidateMoves() = this.flatMap { pod ->
     val rest = this - pod
 
     // possible columns to move in the hallway
-    val occupiedHallway = (rest.filter { it.inHallway() }.map { it.col } + listOf(-1, 11))
+    val occupiedHallway = (rest.filter { it.inHallway }.map { it.col } + listOf(-1, 11))
     fun hallwayOptions(col: Int) =
         ((occupiedHallway.filter { it < col }.maxOrNull()!! + 1)..(occupiedHallway.filter { it > col }.minOrNull()!! - 1))
             .filter { it % 2 == 1 || it == 0 || it == 10 }
@@ -74,24 +75,24 @@ fun State.candidateMoves() = this.flatMap { pod ->
     val states = mutableListOf<State>()
     when {
         // in hallway and the path home is clear
-        pod.inHallway() && rest.none { it.inHallway() && it.col in pod.col towards pod.getHome() } -> {
-            val top = rest.filter { it.col == pod.getHome() }.minByOrNull { it.row }
+        pod.inHallway && rest.none { it.inHallway && it.col in pod.col towards pod.home } -> {
+            val top = rest.filter { it.col == pod.home }.minByOrNull { it.row }
 
             if (top == null) {
                 // Move from hallway to bottom cell of home
-                states += rest + pod.copy(row = maxRow, col = pod.getHome(), steps = pod.steps + abs(pod.col - pod.getHome()) + maxRow)
-            } else if (top.char == pod.char && rest.filter { it.col == pod.getHome() }.all { it.char == pod.char }) { // move on top of homie
-                states += rest + pod.copy(row = top.row - 1, col = pod.getHome(), steps = pod.steps + abs(pod.col - pod.getHome()) + top.row - 1)
+                states += rest + pod.copy(row = maxRow, col = pod.home, steps = pod.steps + abs(pod.col - pod.home) + maxRow)
+            } else if (top.char == pod.char && rest.filter { it.col == pod.home }.all { it.char == pod.char }) { // move on top of homie
+                states += rest + pod.copy(row = top.row - 1, col = pod.home, steps = pod.steps + abs(pod.col - pod.home) + top.row - 1)
             }
         }
         // at home but move out for pod undertneath
-        pod.isHome() && pod.isTopmost(this) && pod.hasOtherUnderneath(this) -> {
+        pod.isHome && pod.isTopmost(this) && pod.hasOtherUnderneath(this) -> {
             hallwayOptions(pod.col).forEach { hallwayCol ->
                 states += rest + pod.copy(row = 0, col = hallwayCol, steps = pod.steps + pod.row + abs(pod.col - hallwayCol))
             }
         }
         // move into hallway or to (empty home implemented in 2 steps from hallway to home)
-        pod.isInOtherHome() && pod.isTopmost(this) -> {
+        pod.isInOtherHome && pod.isTopmost(this) -> {
             hallwayOptions(pod.col).forEach { hallwayCol ->
                 states += rest + pod.copy(
                     row = 0,
@@ -110,12 +111,12 @@ fun render(state: State) {
     println("#############")
     print("#")
     (0..10).forEach { i ->
-        print(state.find { it.col == i && it.inHallway() }?.let { it.char } ?: '.')
+        print(state.find { it.col == i && it.inHallway }?.let { it.char } ?: '.')
     }
     println("#")
     (1..4).forEach { j ->
         (-1..11).forEach { i ->
-            print(state.find { it.col == i && it.row == j }?.let { it.char } ?: if (i in Pod.home.values) '.' else '#')
+            print(state.find { it.col == i && it.row == j }?.let { it.char } ?: if (i in Pod.homeCol.values) '.' else '#')
         }
         println()
     }
