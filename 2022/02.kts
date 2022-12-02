@@ -10,8 +10,7 @@ fun resultScore(x: Int, y: Int) = when {
     x == (y + 1) % 3 -> 0
     else -> 6
 }
-fun totalScore(game: List<Pair<Int, Int>>) = game
-    .fold(0) { score, (a, b) -> score + shapeScore(b) + resultScore(a, b) }
+fun totalScore(game: List<Pair<Int, Int>>) = game.sumOf { (a, b) -> shapeScore(b) + resultScore(a, b) }
 
 totalScore(strategy).let(::println)
 
