@@ -8,8 +8,7 @@ fun priority(c: Char) = when {
 
 fun score(rucksacks: List<String>, chunker: (List<String>) -> List<List<String>>) = chunker(rucksacks)
         .map { it.map(String::toSet).reduce(Set<Char>::intersect).single() }
-        .map(::priority)
-        .sum()
+        .sumOf(::priority)
 
 val input = File("input/03.in").readLines()
 
