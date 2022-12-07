@@ -11,29 +11,18 @@ data class File(override val name: String, val size: Long) : Node() {
 data class Directory(override val name: String, val children: MutableSet<Node> = mutableSetOf()) : Node() {
     override fun toString(): String = "${name} (dir)"
     fun subdirs(): Set<Directory> = children.filterIsInstance<Directory>().toSet()
-}
 
-fun print(d: Directory, indent: Int = 0) {
-    println(" ".repeat(indent) + "- $d")
-    d.children.forEach { child ->
-        when (child) {
-            is Directory -> print(child, indent + 1)
-            else -> println(" ".repeat(indent + 1) + "- $child")
+    fun sizes(): Map<Directory, Long> {
+        val files = children.filterIsInstance<File>().sumOf { it.size }
+        val dirs = children.filterIsInstance<Directory>().fold(emptyMap<Directory, Long>()) { acc, dir ->
+            acc + dir.sizes()
         }
-    }
-}
 
-fun sizes(d: Directory): Map<Directory, Long> {
-    val files = d.children.filterIsInstance<File>().sumOf { it.size }
-    val dirs = d.children.filterIsInstance<Directory>().fold(emptyMap<Directory, Long>()) { acc, dir ->
-        acc + sizes(dir)
+        return mapOf(this to (files + subdirs().sumOf { dirs[it]!! })) + dirs
     }
-
-    return mapOf(d to (files + d.subdirs().sumOf { dirs[it]!! })) + dirs
 }
 
 fun traverse(inputs: List<String>): Directory {
-    fun isCmd(s: String) = s.startsWith("$ ")
     fun traverse(cmds: List<String>, stack: List<Directory>): Directory {
         val cmd = cmds.firstOrNull()
         val cd = stack.last()
@@ -66,11 +55,11 @@ fun traverse(inputs: List<String>): Directory {
         }
     }
 
-    return traverse(inputs, listOf(Directory("root", mutableSetOf(Directory("/"))))).children.single() as Directory
+    return traverse(inputs, listOf(Directory("root", mutableSetOf(Directory("/"))))).subdirs().single()
 }
 
 val root = traverse(input)
-val sizes = sizes(root)
+val sizes = root.sizes()
 
 sizes.filterValues { it <= 100000 }
     .values
@@ -80,8 +69,7 @@ sizes.filterValues { it <= 100000 }
 val total = 70000000
 val needed = 30000000
 val used = sizes[root]!!
-val toFree = needed - (total - used)
 
-sizes.filterValues { it >= toFree }
+sizes.filterValues { it >= needed - (total - used) }
     .minByOrNull { it.value }
     .let(::println)
