@@ -18,11 +18,17 @@ data class Monkey(val id: Int, val items: List<BigDecimal>, val op: (BigDecimal)
     fun receive(new: List<BigDecimal>) = copy(items = items + new)
 }
 
-val monkeys = File("input/11.in")
-    .readText()
-    .split("\n\n")
+val monkeyInputs = File("input/11.in").readText().split("\n\n")
+val divisor = monkeyInputs
+    .map { input ->
+        val (_, _, _, test) = input.split("\n")
+        test.split(" ").last().trim().toLong()
+    }
+    .reduce { a, b -> a * b }
+val monkeys = monkeyInputs
     .map { input ->
         val (m, s, op, test, yes, no) = input.split("\n")
+        val divTest = test.split(" ").last().trim().toBigDecimal()
 
         Monkey(
             Regex("\\d+").find(m)!!.value.toInt(),
@@ -33,13 +39,13 @@ val monkeys = File("input/11.in")
                     val a = if (left == "old") n else BigDecimal(left)
                     val b = if (right == "old") n else BigDecimal(right)
                     return when (operand) {
-                        "*" -> a * b
+                        "*" -> (a * b).rem(BigDecimal(divisor))
                         "+" -> a + b
                         else -> throw Exception("Unexpected $operand")
                     }
                 }
             },
-            test.split(" ").last().trim().toBigDecimal(),
+            divTest,
             yes.split(" ").last().trim().toInt(),
             no.split(" ").last().trim().toInt()
         )
@@ -52,16 +58,9 @@ fun play(rounds: Int, worryDiv: BigDecimal) = generateSequence(monkeys.associate
         turn.mapValues { if (it.key in thrown) it.value.receive(thrown[it.key]!!) else it.value } + (monkeyId to self)
     }
 }
-    //.withIndex()
     .take(rounds + 1)
-    .mapIndexed { index, round ->
-        println(index)
-        round
-    }
     .last()
-    .let {
-        it.values.map { it.inspected }.sortedDescending().take(2).reduce { a, b -> a * b }
-    }
+    .let { it.values.map { it.inspected }.sortedDescending().take(2).map(Int::toLong).reduce { a, b -> a * b} }
 
 println(play(20, BigDecimal(3)))
 println(play(10000, BigDecimal.ONE)) // 28407524722
