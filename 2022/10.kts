@@ -63,5 +63,3 @@ generateSequence(State(0,1, mapOf('X' to 1), emptyMap())) { (pc, cycle, reg) ->
         State(pc + 1, nextCycle, nextValue)
     }
 }.last()
-
-// FECZELHG
