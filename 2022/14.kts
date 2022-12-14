@@ -19,8 +19,8 @@ val abyss = walls.maxOf { it.y } + 1
 fun parse(line: String) = line.split(" -> ")
         .map { it.split(",").map(String::toInt).let { XY(it[0], it[1]) } }
         .zipWithNext()
-        .fold(emptyList<XY>()) { acc, (a, b) ->
-            acc + (a.x towards b.x).flatMap { i ->
+        .flatMap { (a, b) ->
+            (a.x towards b.x).flatMap { i ->
                 (a.y towards b.y).map { j -> XY(i, j) }
             }
         }
