@@ -17,9 +17,10 @@ val valves = File("input/16.in")
 val startingValve = "AA"
 val totalTime = 30
 
-fun pathLengths(start: String): Map<String, Int> {
-    val frontier = ArrayDeque<Pair<String, Int>>().apply { add(start to 0) }
-    val distances = mutableMapOf<String, Int>()
+data class Path(val length: Int, val path: List<String>)
+fun pathLengths(start: String): Map<String, Path> {
+    val frontier = ArrayDeque<Pair<String, Path>>().apply { add(start to Path(0, emptyList())) }
+    val distances = mutableMapOf<String, Path>()
     while (frontier.isNotEmpty()) {
         val next = frontier.removeFirst()
 
@@ -29,7 +30,7 @@ fun pathLengths(start: String): Map<String, Int> {
 
         valves[next.first]!!.tunnels.forEach {
             if (it !in distances) {
-                frontier.add(it to next.second + 1)
+                frontier.add(it to Path(next.second.length + 1, next.second.path + it))
             }
         }
     }
@@ -51,9 +52,8 @@ data class State(val open: Set<String>, val current: String, val minute: Int, va
         if (current !in open && valve.flow > 0) add(tick().copy(open = open + current))
         else add(tick(totalTime - minute))
         paths[current]!!
-            .filterNot { (target, distance) -> target in open }
-            .forEach { (target, distance) -> add(tick(distance).copy(current = target)) }
-
+            .filterNot { (target, _) -> target in open }
+            .forEach { (target, path) -> add(tick(path.length).copy(current = target)) }
     }
 
     fun scoreUpperBound() = released +
