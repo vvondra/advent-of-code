@@ -1,8 +1,7 @@
 import java.io.File
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.ceil
+import kotlin.math.max
 
 val blueprints = File("input/19.in")
     .readLines()
@@ -11,17 +10,17 @@ val blueprints = File("input/19.in")
 
 data class Blueprint(val id: Int, val recipes: Map<String, Map<String, Int>>) {
     fun ratio() = mapOf(
-            //"ore" to recipes["obsidian"]!!["ore"]!! + recipes["clay"]!!["ore"]!! + recipes["ore"]!!["ore"]!!,
-            "clay" to recipes["obsidian"]!!["clay"]!!,
-            "obsidian" to recipes["geode"]!!["obsidian"]!!
-         )
+        // "ore" to recipes["obsidian"]!!["ore"]!! + recipes["clay"]!!["ore"]!! + recipes["ore"]!!["ore"]!!,
+        "clay" to recipes["obsidian"]!!["clay"]!!,
+        "obsidian" to recipes["geode"]!!["obsidian"]!!
+    )
         .map { (k, v) -> k to v }
         .sortedByDescending { it.second }
         .map { it.first }
 
     val caps: Map<String, Int> = recipes.entries.map { it.value }.reduce { a, b ->
         a.toMutableMap().apply {
-            b.forEach { key, value -> merge(key, value) { a, b -> max(a, b )} }
+            b.forEach { key, value -> merge(key, value) { a, b -> max(a, b) } }
         }.toMap()
     }
 
@@ -99,7 +98,6 @@ data class State(
     }
 }
 
-
 fun explore(start: State): State? {
     var lowerBound = 0
     var bestKnown: State? = null
@@ -118,7 +116,6 @@ fun explore(start: State): State? {
 
         if (next.done && next.resource("geode") > lowerBound) {
             bestKnown = next
-            //println(bestKnown)
             lowerBound = bestKnown.resource("geode")
         } else if (next.minute < next.maxTime) {
             frontier.addAll(next.options())
@@ -131,7 +128,7 @@ fun explore(start: State): State? {
 blueprints
     .mapValues { explore(State(blueprints[it.key]!!, State.EMPTY_RESOURCE, State.INITIAL_ROBOTS, 0, 24)) }
     .entries
-    .fold(0) { acc, (blueprintId, state) -> acc + blueprintId * (state?.resource("geode") ?: 0)}
+    .fold(0) { acc, (blueprintId, state) -> acc + blueprintId * (state?.resource("geode") ?: 0) }
     .let(::println)
 
 blueprints
@@ -139,6 +136,5 @@ blueprints
     .headMap(3 + 1)
     .mapValues { explore(State(blueprints[it.key]!!, State.EMPTY_RESOURCE, State.INITIAL_ROBOTS, 0, 32)) }
     .entries
-    .fold(1) { acc, (_, state) -> acc * (state?.resource("geode") ?: 0)}
+    .fold(1) { acc, (_, state) -> acc * (state?.resource("geode") ?: 0) }
     .let(::println)
-

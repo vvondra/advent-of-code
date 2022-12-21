@@ -2,7 +2,7 @@ import java.io.File
 
 val cubes = File("input/18.in")
     .readLines()
-    .map { it.split(",").let { (x, y ,z) -> XYZ(x.toInt(), y.toInt(), z.toInt()) } }
+    .map { it.split(",").let { (x, y, z) -> XYZ(x.toInt(), y.toInt(), z.toInt()) } }
     .toSet()
 
 data class XYZ(val x: Int, val y: Int, val z: Int) {
@@ -12,7 +12,7 @@ data class XYZ(val x: Int, val y: Int, val z: Int) {
         XYZ(1, 0, 0),
         XYZ(-1, 0, 0),
         XYZ(0, 1, 0),
-        XYZ(0, -1, 0),
+        XYZ(0, -1, 0)
     ).map { it + this }.toSet()
 
     operator fun plus(other: XYZ) = XYZ(x + other.x, y + other.y, z + other.z)
@@ -39,6 +39,5 @@ fun pocket(seed: XYZ): Set<XYZ> {
 
 val pockets = seeds.fold(mutableSetOf<XYZ>()) { acc, seed -> acc.apply { addAll(pocket(seed)) } }
 
-val extSurface = cubes.sumOf { cube -> cube.adjacent().count { it !in pockets && it !in cubes} }
+val extSurface = cubes.sumOf { cube -> cube.adjacent().count { it !in pockets && it !in cubes } }
 println(extSurface)
-

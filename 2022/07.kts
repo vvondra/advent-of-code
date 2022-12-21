@@ -5,11 +5,11 @@ sealed class Node {
 }
 
 data class File(override val name: String, val size: Long) : Node() {
-    override fun toString(): String = "${name} (file, size=${size})"
+    override fun toString(): String = "$name (file, size=$size)"
 }
 
 data class Directory(override val name: String, val children: MutableSet<Node> = mutableSetOf()) : Node() {
-    override fun toString(): String = "${name} (dir)"
+    override fun toString(): String = "$name (dir)"
     fun subdirs(): Set<Directory> = children.filterIsInstance<Directory>().toSet()
 
     fun sizes(): Map<Directory, Long> {

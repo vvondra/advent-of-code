@@ -1,6 +1,5 @@
 import java.io.File
 import java.util.*
-import kotlin.math.exp
 
 val input = File("input/13.in")
     .readText()
@@ -82,7 +81,7 @@ fun compare(left: Node.List, right: Node.List): Result {
     }
 }
 
-input.withIndex().filter { compare(it.value.first, it.value.second) == Result.OK }.map { it.index + 1}.sum().let(::println)
+input.withIndex().filter { compare(it.value.first, it.value.second) == Result.OK }.map { it.index + 1 }.sum().let(::println)
 
 val dividerA = Node.List(Node.List(Node.Leaf(2)))
 val dividerB = Node.List(Node.List(Node.Leaf(6)))

@@ -55,4 +55,4 @@ fun play(rounds: Int, postOp: (Long) -> Long) = generateSequence(monkeys.associa
     .let { it.values.map { it.inspected }.sortedDescending().take(2).reduce(Long::times) }
 
 println(play(20) { it -> it / 3L })
-println(play(10000, { it -> it.rem(monkeys.map { it.div }.reduce(Long::times))}))
+println(play(10000, { it -> it.rem(monkeys.map { it.div }.reduce(Long::times)) }))

@@ -51,7 +51,7 @@ fun score(xy: XY): Long {
         Flare(xy, XY(0, 1)).next(input[xy]!!),
         Flare(xy, XY(0, -1)).next(input[xy]!!),
         Flare(xy, XY(1, 0)).next(input[xy]!!),
-        Flare(xy, XY(-1, 0)).next(input[xy]!!),
+        Flare(xy, XY(-1, 0)).next(input[xy]!!)
     )
     queue.addAll(flares)
     val distances = flares.map { (_, vector, _) -> vector to 0L }.toMap().toMutableMap()

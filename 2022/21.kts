@@ -1,8 +1,5 @@
 import java.io.File
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.ceil
 
 val graph = File("input/21.in")
     .readLines().map { line ->
@@ -20,7 +17,7 @@ sealed interface Op {
     data class Expression(val result: String, val left: String, val right: String, val op: Char): Op {
         override fun adjacent(): Set<String> = setOf(left, right)
         override fun name(): String = result
-        fun calculate(lookup: Map<String, Long>) = when(op) {
+        fun calculate(lookup: Map<String, Long>) = when (op) {
             '+' -> lookup[left]!! + lookup[right]!!
             '-' -> lookup[left]!! - lookup[right]!!
             '*' -> lookup[left]!! * lookup[right]!!
@@ -84,22 +81,24 @@ fun descend(path: List<String>, match: Long?): Long {
     val constant = calculate(sorted, other)
 
     val op = if (top.name() == "root") '=' else top.op
-    //println("${path.first()} has to equal ${match}, constant subtree is ${other}:${constant}, op is ${op}")
 
-    return when (op) {
-        '+' -> descend(path.drop(1),   match!! - constant)
-        '*' -> descend(path.drop(1), match!! / constant)
-        '-' -> {
-            if (other == top.right) descend(path.drop(1),  constant + match!!)
-            else descend(path.drop(1),  constant - match!!)
+    return descend(
+        path.drop(1),
+        when (op) {
+            '+' -> match!! - constant
+            '*' -> match!! / constant
+            '-' -> {
+                if (other == top.right) constant + match!!
+                else constant - match!!
+            }
+            '/' -> {
+                if (other == top.right) constant * match!!
+                else constant / match!!
+            }
+            '=' -> constant
+            else -> throw Exception("Unknown $op")
         }
-        '/' -> {
-            if (other == top.right) descend(path.drop(1),  constant * match!!)
-            else descend(path.drop(1),  constant / match!!)
-        }
-        '=' -> descend(path.drop(1), constant)
-        else -> throw Exception("Unknown ${op}")
-    }
+    )
 }
 
 println(descend(rootToHuman, null))

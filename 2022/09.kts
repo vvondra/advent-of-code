@@ -21,15 +21,15 @@ data class XY(val x: Int, val y: Int) {
         else -> throw Exception()
     }
     fun follow(b: XY): XY = if (touches(b)) this else {
-            setOf(-1, 0, 1).flatMap { i -> setOf(-1, 0, 1).map { j -> XY(i, j) } }
-                .map { this + it }
-                .minByOrNull { it.distance(b) }!!
-        }
+        setOf(-1, 0, 1).flatMap { i -> setOf(-1, 0, 1).map { j -> XY(i, j) } }
+            .map { this + it }
+            .minByOrNull { it.distance(b) }!!
+    }
 }
 
 data class StepN(val knots: List<XY>, val visited: Set<XY> = setOf(knots.last()))
 fun visited(n: Int) = cmds
-    .fold(StepN(List(n) { XY(0, 0)})) { (knots, visited), cmd ->
+    .fold(StepN(List(n) { XY(0, 0) })) { (knots, visited), cmd ->
         val new = knots.drop(1).runningFold(knots.first().move(cmd)) { acc, xy -> xy.follow(acc) }
 
         StepN(new, visited + new.last())

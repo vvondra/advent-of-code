@@ -30,7 +30,7 @@ data class State(val pc: Int, val cycle: Int, val reg: Map<Char, Int>, val histo
 
 val breakpoints = (0..5).map { 20 + 40 * it }
 
-val state = generateSequence(State(0,1, mapOf('X' to 1), emptyMap())) { (pc, cycle, reg, history) ->
+val state = generateSequence(State(0, 1, mapOf('X' to 1), emptyMap())) { (pc, cycle, reg, history) ->
     if (pc >= cmds.size) {
         null
     } else {
@@ -46,7 +46,7 @@ val state = generateSequence(State(0,1, mapOf('X' to 1), emptyMap())) { (pc, cyc
 
 println(state.history.entries.fold(0) { acc, entry -> acc + entry.value * entry.key })
 
-generateSequence(State(0,1, mapOf('X' to 1), emptyMap())) { (pc, cycle, reg) ->
+generateSequence(State(0, 1, mapOf('X' to 1), emptyMap())) { (pc, cycle, reg) ->
     if (pc >= cmds.size) {
         null
     } else {

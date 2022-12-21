@@ -1,12 +1,9 @@
 import java.io.File
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.ceil
 
 val buffer = File("input/20.in").readLines().map { it.toLong() }.toMutableList()
 
-class DLL {
+class CircularList {
     inner class Node(val value: Long, var next: Node?, var prev: Node?) {
         fun offset(n: Int) = when {
             n > 0 -> forward().drop(n).first()
@@ -16,7 +13,6 @@ class DLL {
         fun forward(): Sequence<Node> = generateSequence(this) { it -> it.next }
 
         override fun toString() = "$value"
-
     }
 
     var size = 0
@@ -68,13 +64,13 @@ class DLL {
     }
 }
 
-val list = DLL()
+val list = CircularList()
 buffer.forEach { list.addLast(it) }
 buffer.withIndex().forEach { (index, _) -> list.move(index) }
 println(list.groveCoordinates())
 
 val key = 811589153
-val list2 = DLL()
+val list2 = CircularList()
 buffer.forEach { list2.addLast(it * key) }
 repeat(10) {
     buffer.withIndex().forEach { (index, _) -> list2.move(index) }

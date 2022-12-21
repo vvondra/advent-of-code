@@ -37,7 +37,6 @@ fun pathLengths(start: String, valveMap: Map<String, Valve>): Map<String, Path> 
     return distances.filter { valveMap[it.key]!!.flow > 0 }.filterKeys { it != start }
 }
 
-
 data class Valve(val name: String, val flow: Int, val tunnels: Set<String>)
 data class State(val open: Set<String>, val current: String, val minute: Int, val released: Int = 0) {
     fun done(totalTime: Int) = minute == totalTime
@@ -57,10 +56,10 @@ data class State(val open: Set<String>, val current: String, val minute: Int, va
     }
 
     fun scoreUpperBound(valves: Map<String, Valve>, totalTime: Int) = released +
-            (open.sumOf { valves[it]!!.flow } * (totalTime - minute + 1)) +
-            valves.keys
-                .filterNot { it in open }
-                .sumOf { valves[it]!!.flow * (totalTime - minute - 1) } // optimizable
+        (open.sumOf { valves[it]!!.flow } * (totalTime - minute + 1)) +
+        valves.keys
+            .filterNot { it in open }
+            .sumOf { valves[it]!!.flow * (totalTime - minute - 1) } // optimizable
 }
 
 fun explore(valves: Map<String, Valve>, totalTime: Int): State? {
@@ -83,7 +82,7 @@ fun explore(valves: Map<String, Valve>, totalTime: Int): State? {
 
         if (next.done(totalTime) && next.released > lowerBound) {
             bestKnown = next
-            //println(bestKnown)
+            // println(bestKnown)
 
             lowerBound = bestKnown.released
         } else {
@@ -100,20 +99,18 @@ fun explore(valves: Map<String, Valve>, totalTime: Int): State? {
     return bestKnown
 }
 
-
 fun <T> split(list: List<T>) = sequence {
-        val max = Math.pow(2.0, (list.size - 1).toDouble()).toLong()
-        (0 until max).forEach { signature ->
-            val setA = mutableSetOf<T>(list[0])
-            val setB = mutableSetOf<T>()
-            (1 until list.size).forEach {
-                if (signature and (1L shl (it - 1)) == 0) setA.add(list[it]) else setB.add(list[it])
-            }
-
-            yield(setA to setB)
+    val max = Math.pow(2.0, (list.size - 1).toDouble()).toLong()
+    (0 until max).forEach { signature ->
+        val setA = mutableSetOf<T>(list[0])
+        val setB = mutableSetOf<T>()
+        (1 until list.size).forEach {
+            if (signature and (1L shl (it - 1)) == 0) setA.add(list[it]) else setB.add(list[it])
         }
-    }
 
+        yield(setA to setB)
+    }
+}
 
 explore(input, 30)?.let(::println)
 
@@ -121,7 +118,7 @@ fun exploreTwo(): Int {
     return split((input.filter { it.value.flow > 0 }.keys).toList())
         .toList()
         .parallelStream()
-        .map{ (me, elephant) ->
+        .map { (me, elephant) ->
             val meValves = input.mapValues { if (it.key !in me) it.value.copy(flow = 0) else it.value }
 
             val elephantValves = input.mapValues { if (it.key !in elephant) it.value.copy(flow = 0) else it.value }

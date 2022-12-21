@@ -1,8 +1,8 @@
 import java.io.File
 import java.util.*
 import kotlin.math.abs
-import kotlin.math.min
 import kotlin.math.max
+import kotlin.math.min
 
 fun IntRange.length(): Int = if (this.isEmpty()) 0 else endInclusive - start + 1
 infix fun IntRange.intersect(b: IntRange): IntRange = IntRange(max(start, b.start), min(endInclusive, b.endInclusive))
@@ -33,7 +33,6 @@ val zones = File("input/15.in")
         }.let { Zone(it.first(), it.last()) }
     }
 
-
 val row = 2000000
 val bottom = 0
 val top = 4000000
@@ -42,7 +41,7 @@ val bounds = bottom..top
 val xRange = zones.minOf { it.xRange(row).start }..zones.maxOf { it.xRange(row).endInclusive }
 xRange
     .map { XY(it, row) }
-    .count { xy -> zones.any { xy in it } && zones.none { it.beacon == xy }}
+    .count { xy -> zones.any { xy in it } && zones.none { it.beacon == xy } }
     .let(::println)
 
 bounds.forEach { y ->

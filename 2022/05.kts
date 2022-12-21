@@ -1,6 +1,6 @@
 import java.io.File
 
-val (drawing, steps) =  File("input/05.in")
+val (drawing, steps) = File("input/05.in")
     .readText()
     .split("\n\n")
     .map { it.split("\n") }

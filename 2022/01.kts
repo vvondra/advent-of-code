@@ -6,6 +6,5 @@ val elves = File("input/01.in")
     .split("\n\n")
     .map { it.split("\n").map { it.toLong() } }
 
-
 println(elves.maxOf(List<Long>::sum))
 println(elves.map { it.sum() }.sortedDescending().take(3).sum())
