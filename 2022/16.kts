@@ -1,6 +1,5 @@
 import java.io.File
 import java.util.*
-@file:KotlinOptions("-J-Xmx5g")
 
 val valves = File("input/16.in")
     .readLines()
@@ -17,6 +16,7 @@ val valves = File("input/16.in")
 val startingValve = "AA"
 val totalTime = 30
 
+typealias PathMap = Map<String, Map<String, Path>>
 data class Path(val length: Int, val path: List<String>)
 fun pathLengths(start: String): Map<String, Path> {
     val frontier = ArrayDeque<Pair<String, Path>>().apply { add(start to Path(0, emptyList())) }
@@ -38,20 +38,17 @@ fun pathLengths(start: String): Map<String, Path> {
     return distances.filter { valves[it.key]!!.flow > 0 }.filterKeys { it != start }
 }
 
-val paths = valves
-    .filterValues { it.flow > 0 || it.name == startingValve }
-    .mapValues { pathLengths(it.key) }
 
 data class Valve(val name: String, val flow: Int, val tunnels: Set<String>)
 data class State(val open: Set<String>, val current: String, val minute: Int, val released: Int = 0) {
     fun done() = minute == totalTime
     fun tick(): State = copy(minute = minute + 1, released = released + open.sumOf { valves[it]!!.flow })
     fun tick(n: Int): State = (1..n).fold(this) { e, _ -> e.tick() }
-    fun candidateMoves() = mutableSetOf<State>().apply {
+    fun candidateMoves(pathMap: PathMap) = mutableSetOf<State>().apply {
         val valve = valves[current]!!
         if (current !in open && valve.flow > 0) add(tick().copy(open = open + current))
         else add(tick(totalTime - minute))
-        paths[current]!!
+        pathMap[current]!!
             .filterNot { (target, _) -> target in open }
             .forEach { (target, path) -> add(tick(path.length).copy(current = target)) }
     }
@@ -63,7 +60,7 @@ data class State(val open: Set<String>, val current: String, val minute: Int, va
                 .sumOf { valves[it]!!.flow * (totalTime - minute - 1) } // optimizable
 }
 
-fun explore(): State? {
+fun explore(pathMap: PathMap): State? {
     var lowerBound = 0
     var bestKnown: State? = null
     val start = State(emptySet(), startingValve, 0, 0)
@@ -81,7 +78,7 @@ fun explore(): State? {
 
             lowerBound = bestKnown.released
         } else {
-            next.candidateMoves().forEach { candidate ->
+            next.candidateMoves(pathMap).forEach { candidate ->
                 if (candidate.scoreUpperBound() >= lowerBound && candidate.minute <= totalTime) {
                     if (candidate !in visited) {
                         frontier.add(candidate)
@@ -94,4 +91,8 @@ fun explore(): State? {
     return bestKnown
 }
 
-explore()?.let(::println)
+val paths: PathMap = valves
+    .filterValues { it.flow > 0 || it.name == startingValve }
+    .mapValues { pathLengths(it.key) }
+
+explore(paths)?.let(::println)
