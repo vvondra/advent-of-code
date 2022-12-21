@@ -1,7 +1,7 @@
 import java.io.File
 import java.util.*
 
-val valves = File("input/16.test")
+val input: Map<String, Valve> = File("input/16.in")
     .readLines()
     .map {
         val parts = it.split(" ")
@@ -17,7 +17,7 @@ val startingValve = "AA"
 
 typealias PathMap = Map<String, Map<String, Path>>
 data class Path(val length: Int, val path: List<String>)
-fun pathLengths(start: String): Map<String, Path> {
+fun pathLengths(start: String, valveMap: Map<String, Valve>): Map<String, Path> {
     val frontier = ArrayDeque<Pair<String, Path>>().apply { add(start to Path(0, emptyList())) }
     val distances = mutableMapOf<String, Path>()
     while (frontier.isNotEmpty()) {
@@ -27,43 +27,51 @@ fun pathLengths(start: String): Map<String, Path> {
             distances.put(next.first, next.second)
         }
 
-        valves[next.first]!!.tunnels.forEach {
+        valveMap[next.first]!!.tunnels.forEach {
             if (it !in distances) {
                 frontier.add(it to Path(next.second.length + 1, next.second.path + it))
             }
         }
     }
 
-    return distances.filter { valves[it.key]!!.flow > 0 }.filterKeys { it != start }
+    return distances.filter { valveMap[it.key]!!.flow > 0 }.filterKeys { it != start }
 }
 
 
 data class Valve(val name: String, val flow: Int, val tunnels: Set<String>)
 data class State(val open: Set<String>, val current: String, val minute: Int, val released: Int = 0) {
     fun done(totalTime: Int) = minute == totalTime
-    fun tick(): State = copy(minute = minute + 1, released = released + open.sumOf { valves[it]!!.flow })
-    fun tick(n: Int): State = (1..n).fold(this) { e, _ -> e.tick() }
-    fun candidateMoves(pathMap: PathMap, totalTime: Int) = mutableSetOf<State>().apply {
+    fun tick(valves: Map<String, Valve>): State = copy(minute = minute + 1, released = released + open.sumOf { valves[it]!!.flow })
+    fun tick(valves: Map<String, Valve>, n: Int): State = (1..n).fold(this) { e, _ -> e.tick(valves) }
+    fun candidateMoves(valves: Map<String, Valve>, pathMap: PathMap, totalTime: Int) = mutableSetOf<State>().apply {
         val valve = valves[current]!!
-        if (current !in open && valve.flow > 0) add(tick().copy(open = open + current))
-        else add(tick(totalTime - minute))
+        if (current !in open && valve.flow > 0) add(tick(valves).copy(open = open + current))
+        else add(tick(valves, totalTime - minute))
+
+        if (current !in pathMap) {
+            println("ERROR!!! $current $pathMap")
+        }
         pathMap[current]!!
             .filterNot { (target, _) -> target in open }
-            .forEach { (target, path) -> add(tick(path.length).copy(current = target)) }
+            .forEach { (target, path) -> add(tick(valves, path.length).copy(current = target)) }
     }
 
-    fun scoreUpperBound(totalTime: Int) = released +
+    fun scoreUpperBound(valves: Map<String, Valve>, totalTime: Int) = released +
             (open.sumOf { valves[it]!!.flow } * (totalTime - minute + 1)) +
             valves.keys
                 .filterNot { it in open }
                 .sumOf { valves[it]!!.flow * (totalTime - minute - 1) } // optimizable
 }
 
-fun explore(pathMap: PathMap, totalTime: Int): State? {
+fun explore(valves: Map<String, Valve>, totalTime: Int): State? {
+    val pathMap: PathMap = valves
+        .filterValues { it.flow > 0 || it.name == startingValve }
+        .mapValues { pathLengths(it.key, valves) }
+
     var lowerBound = 0
     var bestKnown: State? = null
     val start = State(emptySet(), startingValve, 0, 0)
-    val scoring = compareByDescending<State> { it.open.sumOf { valves[it]!!.flow } }.thenByDescending { it.scoreUpperBound(totalTime) }
+    val scoring = compareByDescending<State> { it.open.sumOf { valves[it]!!.flow } }.thenByDescending { it.scoreUpperBound(valves, totalTime) }
     val frontier = PriorityQueue<State>(scoring).apply { add(start) }
     val visited = mutableSetOf<State>().apply { add(start) }
 
@@ -79,8 +87,8 @@ fun explore(pathMap: PathMap, totalTime: Int): State? {
 
             lowerBound = bestKnown.released
         } else {
-            next.candidateMoves(pathMap, totalTime).forEach { candidate ->
-                if (candidate.scoreUpperBound(totalTime) >= lowerBound && candidate.minute <= totalTime) {
+            next.candidateMoves(valves, pathMap, totalTime).forEach { candidate ->
+                if (candidate.scoreUpperBound(valves, totalTime) >= lowerBound && candidate.minute <= totalTime) {
                     if (candidate !in visited) {
                         frontier.add(candidate)
                     }
@@ -92,9 +100,6 @@ fun explore(pathMap: PathMap, totalTime: Int): State? {
     return bestKnown
 }
 
-val paths: PathMap = valves
-    .filterValues { it.flow > 0 || it.name == startingValve }
-    .mapValues { pathLengths(it.key) }
 
 fun <T> split(list: List<T>) = sequence {
         val max = Math.pow(2.0, (list.size - 1).toDouble()).toLong()
@@ -110,23 +115,26 @@ fun <T> split(list: List<T>) = sequence {
     }
 
 
-explore(paths, 30)?.let(::println)
+explore(input, 30)?.let(::println)
 
 fun exploreTwo(): Int {
-    fun filterPaths(pathMap: PathMap, whitelist: Set<String>) = pathMap
-        .filterKeys { it in whitelist || it == startingValve }
-        .mapValues { it.value.filterKeys { it in whitelist || it == startingValve } }
+    return split((input.filter { it.value.flow > 0 }.keys).toList())
+        .toList()
+        .parallelStream()
+        .map{ (me, elephant) ->
+            val meValves = input.mapValues { if (it.key !in me) it.value.copy(flow = 0) else it.value }
 
-    split(paths.keys.toList()).forEach { println(it) }
-    return split((paths.keys - startingValve).toList())
-        .maxOf { (me, elephant) ->
-            val one = (explore(filterPaths(paths, me), 26)?.released ?: 0)
-            val two = (explore(filterPaths(paths, elephant), 26)?.released ?: 0)
+            val elephantValves = input.mapValues { if (it.key !in elephant) it.value.copy(flow = 0) else it.value }
+
+            val one = (explore(meValves, 26)?.released ?: 0)
+            val two = (explore(elephantValves, 26)?.released ?: 0)
             print(me to elephant)
             println(" $one + $two = ${one + two}")
 
             one + two
         }
+        .mapToInt { it }
+        .max().asInt
 }
 
 exploreTwo().let(::println)
