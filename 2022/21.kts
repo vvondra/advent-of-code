@@ -27,6 +27,7 @@ sealed interface Op {
             '/' -> lookup[left]!! / lookup[right]!!
             else -> throw Exception("Unknown $op")
         }
+        fun other(name: String) = if (left == name) right else left
     }
     data class Const(val result: String, val value: Long): Op {
         override fun adjacent(): Set<String> = emptySet()
@@ -34,7 +35,7 @@ sealed interface Op {
     }
 }
 
-fun topo(): Iterable<String> {
+fun topoSort(): Iterable<String> {
     val visited = mutableSetOf<String>()
     val stack = mutableListOf<String>()
 
@@ -49,7 +50,7 @@ fun topo(): Iterable<String> {
     return stack
 }
 
-fun calculate(sorted: Iterable<String>) =
+fun calculate(sorted: Iterable<String>, node: String) =
     sorted.fold(emptyMap<String, Long>()) { acc, opName ->
         val value = when (val op = graph[opName]!!) {
             is Op.Const -> opName to op.value
@@ -57,6 +58,48 @@ fun calculate(sorted: Iterable<String>) =
         }
 
         acc + value
-    }
+    }[node]!!
 
-println(calculate(topo()))
+val sorted = topoSort()
+println(calculate(sorted, "root"))
+
+fun findPathToHuman(start: String): List<String>? {
+    if (start == "humn") return listOf(start)
+    val adjacent = graph[start]!!.adjacent()
+    if (adjacent.isEmpty()) return null
+
+    return adjacent.firstNotNullOfOrNull { next ->
+        val path = findPathToHuman(next)
+        if (path == null) null else listOf(start) + path
+    }
+}
+
+val rootToHuman = findPathToHuman("root")!!
+
+fun descend(path: List<String>, match: Long?): Long {
+    if (path == listOf("humn")) return match!!
+
+    val top = (graph[path.first()]!! as Op.Expression)
+    val other = top.other(path[1])
+    val constant = calculate(sorted, other)
+
+    val op = if (top.name() == "root") '=' else top.op
+    //println("${path.first()} has to equal ${match}, constant subtree is ${other}:${constant}, op is ${op}")
+
+    return when (op) {
+        '+' -> descend(path.drop(1),   match!! - constant)
+        '*' -> descend(path.drop(1), match!! / constant)
+        '-' -> {
+            if (other == top.right) descend(path.drop(1),  constant + match!!)
+            else descend(path.drop(1),  constant - match!!)
+        }
+        '/' -> {
+            if (other == top.right) descend(path.drop(1),  constant * match!!)
+            else descend(path.drop(1),  constant / match!!)
+        }
+        '=' -> descend(path.drop(1), constant)
+        else -> throw Exception("Unknown ${op}")
+    }
+}
+
+println(descend(rootToHuman, null))
