@@ -12,6 +12,7 @@ class DLL {
             n > 0 -> forward().drop(n).first()
             else -> throw Exception("$n")
         }
+
         fun forward(): Sequence<Node> = generateSequence(this) { it -> it.next }
 
         override fun toString() = "$value"
