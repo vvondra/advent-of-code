@@ -73,7 +73,7 @@ fun findPathToHuman(start: String): List<String>? {
 
 val rootToHuman = findPathToHuman("root")!!
 
-fun descend(path: List<String>, match: Long?): Long {
+tailrec fun descend(path: List<String>, match: Long?): Long {
     if (path == listOf("humn")) return match!!
 
     val top = (graph[path.first()]!! as Op.Expression)
