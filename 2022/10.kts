@@ -40,7 +40,7 @@ val state = generateSequence(State(0, 1, mapOf('X' to 1), emptyMap())) { (pc, cy
         val nextValue = cmd.exec(reg)
         val breakpoint = breakpoints.firstOrNull { it < cycle + cmd.cycles && !history.containsKey(it) }
 
-        State(pc + 1, nextCycle, nextValue, if (breakpoint != null) history + (breakpoint to reg['X']!!) else history)
+        State(pc + 1, nextCycle, nextValue, breakpoint?.let { history + (it to reg['X']!!) } ?: history)
     }
 }.last()
 

@@ -63,9 +63,7 @@ fun score(overflow: (Position) -> Position) = instructions
                     next = when (map[candidate.xy]) {
                         '.' -> candidate
                         '#' -> return@forEach
-                        else -> overflow(next).let {
-                                wrapped -> if (wrapped.xy in map && map[wrapped.xy]!! == '.') wrapped else null
-                        } ?: return@forEach
+                        else -> overflow(next).takeIf { it.xy in map && map[it.xy] == '.' } ?: return@forEach
                     }
                 }
                 next

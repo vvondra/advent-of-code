@@ -65,10 +65,7 @@ fun findPathToHuman(start: String): List<String>? {
     val adjacent = graph[start]!!.adjacent()
     if (adjacent.isEmpty()) return null
 
-    return adjacent.firstNotNullOfOrNull { next ->
-        val path = findPathToHuman(next)
-        if (path == null) null else listOf(start) + path
-    }
+    return adjacent.firstNotNullOfOrNull { next -> findPathToHuman(next)?.let { listOf(start) + it} }
 }
 
 val rootToHuman = findPathToHuman("root")!!
