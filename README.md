@@ -1,11 +1,11 @@
 # advent-of-code
+## 2023
 
-## 2021
+De-rusting my C#
+
+## 2021-2022
 
 Same as last year, going for Kotlin
-
-1. [Sonar Sweep](./2021/01.kts), comparing and summing elements in sliding windows
-2. [Dive!](./2021/02.kts), executing commands producing a final 2D location 
 
 ## 2020
 
