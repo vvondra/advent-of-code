@@ -1,4 +1,4 @@
-﻿var input = Day2.Properties.Resources.input.Split(Environment.NewLine);
+﻿var input = File.ReadLines("input.txt");
 
 var games = input
     .Where(row => !string.IsNullOrWhiteSpace(row))

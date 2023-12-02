@@ -1,4 +1,4 @@
-﻿var input = Day1.Properties.Resources.input.Split(Environment.NewLine);
+﻿var input = File.ReadLines("input.txt");
 
 var result = input
     .Select(x => x.ToCharArray().Where(y => char.IsDigit(y)))
