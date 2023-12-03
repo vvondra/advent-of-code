@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-var input = File.ReadLines("input.txt").ToList();
+﻿var input = File.ReadLines("input.txt").ToList();
 
 var grid = input
     .SelectMany((line, row) => line.Select((c, col) => (new XY(row, col), c)))
@@ -10,9 +8,12 @@ var grid = input
     );
 
 var numbers = new List<Number>();
-for (int row = 0; row < input.Count; row++) {
-    for (int col = 0; col < input.First().Length; col++) {
-        if (char.IsDigit(grid[new XY(row, col)])) {
+for (int row = 0; row < input.Count; row++)
+{
+    for (int col = 0; col < input.First().Length; col++)
+    {
+        if (char.IsDigit(grid[new XY(row, col)]))
+        {
             var num = string.Concat(input[row][col..].TakeWhile(char.IsDigit));
             numbers.Add(new Number(new XY(row, col), num));
             col += num.Length;
@@ -35,15 +36,17 @@ var result2 = numbers
     .Where(c => c.Count() == 2)
     .Select(c => c.Select(x => int.Parse(x.number.Digits)).Aggregate(1, (acc, y) => acc * y))
     .Sum();
-    
+
 Console.WriteLine(result2);
 
-record Number(XY XY, string Digits) {
+record Number(XY XY, string Digits)
+{
     public IEnumerable<XY> Adjacent() => Enumerable.Range(0, Digits.Length)
                                             .Select(y => XY + new XY(0, y))
                                             .SelectMany(y => y.Adjacent());
 }
-record XY(int Y, int X) {
+record XY(int Y, int X)
+{
     public static XY operator +(XY me, XY other) => new(Y: me.Y + other.Y, X: me.X + other.X);
 
     static readonly XY[] Dirs =
