@@ -34,13 +34,11 @@ Console.WriteLine(result);
 
 var result2 = games
     .Select(game => game.Draws.Aggregate(new Dictionary<string, int>(), (acc, draw) =>
-    {
-        foreach (var ball in draw)
-        {
-            acc[ball.Key] = int.Max(acc.GetValueOrDefault(ball.Key), ball.Value);
-        }
-        return acc;
-    }))
+        draw.Aggregate(acc, (acc2, ball) => {
+            acc2[ball.Key] = int.Max(acc2.GetValueOrDefault(ball.Key), ball.Value);
+            return acc2;
+        })
+    ))
     .Select(agg => agg.Aggregate(1, (acc, set) => acc * set.Value))
     .Sum();
 
