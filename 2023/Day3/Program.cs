@@ -1,11 +1,8 @@
 ﻿var input = File.ReadLines("input.txt").ToList();
 
 var grid = input
-    .SelectMany((line, row) => line.Select((c, col) => (new XY(row, col), c)))
-    .ToDictionary(
-        x => x.Item1,
-        x => x.Item2
-    );
+    .SelectMany((line, row) => line.Select((c, col) => (XY: new XY(row, col), Char: c)))
+    .ToDictionary(x => x.XY, x => x.Char);
 
 var numbers = new List<Number>();
 for (int row = 0; row < input.Count; row++)
@@ -23,27 +20,29 @@ for (int row = 0; row < input.Count; row++)
 
 var result = numbers
     .Where(number => number.Adjacent().Where(c => grid.ContainsKey(c)).Any(c => grid[c] != '.' && !char.IsDigit(grid[c])))
-    .Select(number => int.Parse(number.Digits))
+    .Select(number => number.Value)
     .Sum();
 
 Console.WriteLine(result);
 
 var result2 = numbers
-    .Select(number => (number, number.Adjacent().Distinct().Where(c => grid.ContainsKey(c) && grid[c] == '*')))
-    .Where(number => number.Item2.Any())
-    .Select(number => (number.number, number.Item2.Single()))
-    .GroupBy(x => x.Item2)
+    .Select(number => (number, gears: number.Adjacent().Where(c => grid.ContainsKey(c) && grid[c] == '*')))
+    .Where(number => number.gears.Any())
+    .Select(number => (number.number, gear: number.gears.Single()))
+    .GroupBy(x => x.gear)
     .Where(c => c.Count() == 2)
-    .Select(c => c.Select(x => int.Parse(x.number.Digits)).Aggregate(1, (acc, y) => acc * y))
+    .Select(c => c.Select(x => x.number.Value).Aggregate(1, (acc, y) => acc * y))
     .Sum();
 
 Console.WriteLine(result2);
 
 record Number(XY XY, string Digits)
 {
+    public int Value => int.Parse(Digits);
     public IEnumerable<XY> Adjacent() => Enumerable.Range(0, Digits.Length)
                                             .Select(y => XY + new XY(0, y))
-                                            .SelectMany(y => y.Adjacent());
+                                            .SelectMany(y => y.Adjacent())
+                                            .Distinct();
 }
 record XY(int Y, int X)
 {
