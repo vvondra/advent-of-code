@@ -1,6 +1,7 @@
 ﻿var input = File.ReadAllText("input.txt").Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.TrimEntries).ToArray();
 
 var seeds = input[0].Split(": ")[1].Split(" ", StringSplitOptions.TrimEntries).Select(long.Parse).ToArray();
+var seedRanges = seeds.Chunked(2).Select(x => x.ToArray()).ToArray();
 
 var maps = input[1..]
     .Select(block => {
@@ -12,11 +13,8 @@ var maps = input[1..]
     })
     .ToDictionary(x => x.mapping.from, x => x);
 
-
-
-var result = seeds
-    .Select(seed => {
-        var current = "seed";
+long GetLocation(long seed) {
+    var current = "seed";
         var num = seed;
 
         while (current != "location") {
@@ -30,7 +28,58 @@ var result = seeds
         }
 
         return num;
-    })
-    .Min();
+}
+
+var result = seeds.Select(GetLocation).Min();
 
 Console.WriteLine(result);
+
+// I have paid for all of my 12 cores
+var result2 = seedRanges
+    .SelectMany(x => LongRange(x[0], x[1]))
+    .Chunked(int.MaxValue - 1) // lol, PLINQ can only support up to max int32 values
+    .Select(x => x.AsParallel().Select(GetLocation).Min())
+    .Min();
+Console.WriteLine(result2);
+
+// glue code below
+
+IEnumerable<long> LongRange(long start, long count)
+{
+    if (count < 0)
+    {
+        throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+    }
+
+    long end = start + count;
+    for (long i = start; i < end; i++)
+    {
+        yield return i;
+    }
+}
+
+public static class EnumerableExtensions
+{
+    public static IEnumerable<IEnumerable<T>> Chunked<T>(this IEnumerable<T> source, int chunkSize)
+    {
+        if (chunkSize <= 0)
+            throw new ArgumentException("Chunk size must be greater than 0.", nameof(chunkSize));
+
+        using (var enumerator = source.GetEnumerator())
+        {
+            while (enumerator.MoveNext())
+            {
+                yield return GetChunk(enumerator, chunkSize);
+            }
+        }
+    }
+
+    private static IEnumerable<T> GetChunk<T>(IEnumerator<T> enumerator, int chunkSize)
+    {
+        do
+        {
+            yield return enumerator.Current;
+        }
+        while (--chunkSize > 0 && enumerator.MoveNext());
+    }
+}
