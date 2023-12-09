@@ -37,7 +37,8 @@ public record PokerHand(Card[] Cards) : IComparable<PokerHand>
                         .ToDictionary(group => group.Key, group => group.Count()).Values.ToArray()
                         .OrderByDescending(c => c)
                         .ToArray();
-            if (highest.Length == 0) { // all jokers
+            if (highest.Length == 0) // all jokers
+            { 
                 return [5];
             }
 
@@ -63,7 +64,8 @@ public record PokerHand(Card[] Cards) : IComparable<PokerHand>
                 }
             }
 
-            if (HighestPairs[0] == 2 && other.HighestPairs[0] == 2) {
+            if (HighestPairs[0] == 2 && other.HighestPairs[0] == 2)
+            {
                 if (HighestPairs[1] != other.HighestPairs[1])
                 {
                     return HighestPairs[1] - other.HighestPairs[1];
