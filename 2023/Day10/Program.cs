@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-var input = File.ReadLines("input.txt");
+﻿var input = File.ReadLines("input.txt");
 
 var grid = input
     .SelectMany((line, row) => line.Select((c, col) => (XY: new XY(row, col), Char: c)))
