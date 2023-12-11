@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+﻿using System.Linq;
 
 var input = File.ReadLines("input.txt");
 
@@ -11,8 +11,8 @@ var start = grid.First(el => el.Value.Char == 'S').Value;
 IEnumerable<Tile> Walk(Tile start, Dictionary<XY, Tile> map)
 {
     var visited = new HashSet<XY>([start.XY]);
-    var next = start.Adjacent(map).First();
-
+    var next = start.Adjacent(map).Last();
+    yield return start;
     while (next != null && !visited.Contains(next))
     {
         visited.Add(next);
@@ -21,7 +21,81 @@ IEnumerable<Tile> Walk(Tile start, Dictionary<XY, Tile> map)
     }
 }
 
-Console.WriteLine((Walk(start, grid).Count() + 1) / 2);
+Console.WriteLine(Walk(start, grid).Count() / 2);
+
+var loop = Walk(start, grid).ToList();
+var loopSet = loop.Select(tile => tile.XY).ToHashSet();
+var looped = loop.Zip(loop.Skip(1)).Aggregate(new HashSet<XY>(), (inside, next) =>
+{
+    var prev = next.First;
+    var current = next.Second;
+    var offset = next.Second.XY - next.First.XY;
+
+    IEnumerable<XY> Expand(IEnumerable<XY> xy)
+    {
+        var cleaned = xy.Where(xy => !loopSet.Contains(xy));
+        Queue<XY> queue = new(cleaned);
+        HashSet<XY> visited = [.. cleaned];
+
+        while (queue.Count > 0)
+        {
+            XY currentState = queue.Dequeue();
+            foreach (var nextState in from XY nextState in currentState.Adjacent()
+                                      where !visited.Contains(nextState) && grid.ContainsKey(nextState) && !loopSet.Contains(nextState)
+                                      select nextState)
+            {
+                visited.Add(nextState);
+                queue.Enqueue(nextState);
+            }
+        }
+
+        return visited;
+    }
+
+    List<XY> seed = current.Char switch
+    {
+        '-' => offset.X switch
+        {
+            1 => [new XY(1, 0)],
+            -1 => [new XY(-1, 0)],
+        },
+        '|' => offset.Y switch
+        {
+            1 => [new XY(0, -1)],
+            -1 => [new XY(0, 1)],
+        },
+        'F' => offset switch
+        {
+            XY(0, -1) => [new XY(-1, 0), new XY(0, -1), new XY(-1, -1)],
+            XY(-1, 0) => [new XY(1, 1)]
+        },
+        'L' => offset switch
+        {
+            XY(0, -1) => [new XY(-1, 1)],
+            XY(1, 0) => [new XY(0, -1), new XY(1, -1), new XY(1, 0)]
+        },
+        'J' => offset switch
+        {
+            XY(1, 0) => [new XY(-1, -1)],
+            XY(0, 1) => [new XY(1, 0), new XY(1, 1), new XY(0, 1)]
+        },
+        '7' => offset switch
+        {
+            XY(-1, 0) => [new XY(0, 1), new XY(-1, 1), new XY(-1, 0)],
+            XY(0, 1) => [new XY(1, -1)]
+        },
+        'S' => []
+    };
+
+    foreach (var visited in Expand(seed.Select(x => x + current.XY)))
+    {
+        inside.Add(visited);
+    }
+
+    return inside;
+});
+
+Console.WriteLine(looped.Count);
 
 record Tile(XY XY, char Char)
 {
@@ -54,6 +128,7 @@ record XY(int Y, int X)
     }
 
     public static XY operator +(XY me, XY other) => new(Y: me.Y + other.Y, X: me.X + other.X);
+    public static XY operator -(XY me, XY other) => new(Y: me.Y - other.Y, X: me.X - other.X);
 
     public static readonly XY[] Dirs = [new(-1, 0), new(0, -1), new(0, 1), new(1, 0)];
 
