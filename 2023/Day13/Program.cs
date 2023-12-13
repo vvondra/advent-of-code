@@ -1,10 +1,19 @@
 ﻿var input = File.ReadAllText("input.txt").Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.TrimEntries)
                 .Select(StringTo2DArray);
 
+// too low 23970
 
-var result = input.Select(SymmetryScore).Sum();
+var result = input
+    .Select(grid => (grid, score: SymmetryScore(grid).First()))
+    .Select(scored => {
+        var second = GenerateFlippedGrids(scored.grid).SelectMany(SymmetryScore).First(score => score > 0 && score != scored.score);
 
-Console.WriteLine(result);
+        return (scored.score, second);
+    })
+    .Aggregate((0, 0), (acc, next) => (acc.Item1 + next.score, acc.Item2 + next.second));
+
+Console.WriteLine(result.Item1);
+Console.WriteLine(result.Item2);
 
 static char[,] StringTo2DArray(string input)
 {
@@ -25,12 +34,29 @@ static char[,] StringTo2DArray(string input)
     return grid;
 }
 
-static int SymmetryScore(char[,] grid)
+static IEnumerable<char[,]> GenerateFlippedGrids(char[,] originalGrid)
+{
+    int rows = originalGrid.GetLength(0);
+    int cols = originalGrid.GetLength(1);
+
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            char[,] newGrid = (char[,])originalGrid.Clone();
+
+            // Flip the character
+            newGrid[i, j] = newGrid[i, j] == '#' ? '.' : '#';
+
+            yield return newGrid;
+        }
+    }
+}
+
+static IEnumerable<int> SymmetryScore(char[,] grid)
 {
     int rows = grid.GetLength(0);
     int cols = grid.GetLength(1);
-
-    var total = 0;
 
     // Check rows for symmetry
     for (int i = 0; i < rows - 1; i++)
@@ -39,7 +65,7 @@ static int SymmetryScore(char[,] grid)
         {
             if (IsSymmetric(grid, i, true))
             {
-                total += 100 * (i + 1);
+                yield return 100 * (i + 1);
             }
         }
     }
@@ -51,12 +77,10 @@ static int SymmetryScore(char[,] grid)
         {
             if (IsSymmetric(grid, j, false))
             {
-                total += j + 1;
+                yield return j + 1;
             }
         }
     }
-
-    return total;
 }
 static bool IsSymmetric(char[,] grid, int index, bool isRow)
 {
