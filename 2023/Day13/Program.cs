@@ -1,8 +1,6 @@
 ﻿var input = File.ReadAllText("input.txt").Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.TrimEntries)
                 .Select(StringTo2DArray);
 
-// too low 23970
-
 var result = input
     .Select(grid => (grid, score: SymmetryScore(grid).First()))
     .Select(scored => {
@@ -18,8 +16,8 @@ Console.WriteLine(result.Item2);
 static char[,] StringTo2DArray(string input)
 {
     var lines = input.Split('\n');
-    int rows = lines.Length;
-    int cols = lines[0].Length;
+    var rows = lines.Length;
+    var cols = lines[0].Length;
 
     char[,] grid = new char[rows, cols];
 
