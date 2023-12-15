@@ -5,36 +5,43 @@
     return (record: parts[0], nums: parts[1].Split(",").Select(int.Parse).ToArray());
 }).ToList();
 
-static long Arrangements(string tail, int[] nums)
+static long Arrangements(string origTail, int[] nums)
 {
-    long Arrangements2(string tail, int chomped, ArraySegment<int> nums)
+    var tail = origTail + 'X';
+    var memo = new Dictionary<(char, int, int, int), long>();
+
+    long Arrangements2(char head, int tailIndex, int chomped, ArraySegment<int> nums)
     {
-        if (nums.Sum() + nums.Count > tail.Length + chomped) {
+        var key = (head, tailIndex, chomped, nums.Count);
+        if (memo.ContainsKey(key))
+        {
+            return memo[key];
+        }
+
+        if (nums.Count == 0 && tail.IndexOf('#', tailIndex) > -1)
+        {
             return 0;
         }
 
-        if (nums.Count == 0 && tail.Contains('#')) {
-            return 0;
-        }
-
-        if (nums.Count == 0 && !tail.Contains('#')) {
+        if (nums.Count == 0 && tail.IndexOf('#', tailIndex) == -1)
+        {
             return 1;
         }
 
-        return tail[0] switch
+        var result = head switch
         {
-            '?' => Arrangements2("#" +tail[1..], chomped, nums)
-                    + Arrangements2("." + tail[1..], chomped, nums),
+            '?' => Arrangements2('#', tailIndex, chomped, nums)
+                    + Arrangements2('.', tailIndex, chomped, nums),
             '.' => chomped switch
             {
-                0 => Arrangements2(tail[1..], 0, nums),
-                _ when chomped == nums[0] => Arrangements2(tail[1..], 0, nums[1..]),
+                0 => Arrangements2(tail[tailIndex + 1], tailIndex + 1, 0, nums),
+                _ when chomped == nums[0] => Arrangements2(tail[tailIndex + 1], tailIndex + 1, 0, nums[1..]),
                 _ => 0,
             },
             '#' => chomped switch
             {
                 _ when nums.Count == 0 => 0,
-                _ when chomped <= nums[0] => Arrangements2(tail[1..], chomped + 1, nums),
+                _ when chomped <= nums[0] => Arrangements2(tail[tailIndex + 1], tailIndex + 1, chomped + 1, nums),
                 _ => 0,
             },
             'X' => chomped switch
@@ -45,8 +52,12 @@ static long Arrangements(string tail, int[] nums)
             },
             _ => throw new NotImplementedException()
         };
+
+        memo[key] = result;
+        return result;
     }
-    return Arrangements2(tail + 'X', 0, nums);
+
+    return Arrangements2(tail[0], 0, 0, nums);
 }
 
 
@@ -55,11 +66,7 @@ Console.WriteLine(result);
 
 var result2 = input
     .Select(x => (record: string.Join('?', Enumerable.Repeat(x.record, 5)), nums: Enumerable.Repeat(x.nums, 5).SelectMany(x => x).ToArray()))
-    .AsParallel().WithDegreeOfParallelism(8).WithExecutionMode(ParallelExecutionMode.ForceParallelism)
-    .Select(x => (x, Arrangements(x.record, x.nums)))
-    .Select(x => {Console.WriteLine($"{x.Item2,20} {x.Item1.record}"); return x.Item2;})
-    .ToList();
+    .Select(x => Arrangements(x.record, x.nums))
+    .Sum();
 
-    //.Sum();
-
-Console.WriteLine(result2.Sum());
+Console.WriteLine(result2);
