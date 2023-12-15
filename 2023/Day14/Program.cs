@@ -16,12 +16,12 @@ Console.WriteLine(ScoreGrid(CycleGrid(grid)));
 Dictionary<(int X, int Y), char> SettleGrid(Dictionary<(int X, int Y), char> grid, int direction = 0)
 {
     List<Func<(int X, int Y), (int X, int Y)>> modifiers =
-[
-    coordinate => (coordinate.X - 1, coordinate.Y),
-            coordinate => (coordinate.X, coordinate.Y - 1),
-            coordinate => (coordinate.X + 1, coordinate.Y),
-            coordinate => (coordinate.X, coordinate.Y + 1)
-];
+    [
+        coordinate => (coordinate.X - 1, coordinate.Y),
+        coordinate => (coordinate.X, coordinate.Y - 1),
+        coordinate => (coordinate.X + 1, coordinate.Y),
+        coordinate => (coordinate.X, coordinate.Y + 1)
+    ];
 
     Dictionary<(int X, int Y), char> previousGrid = grid;
     Dictionary<(int X, int Y), char> candidate = grid;
@@ -54,7 +54,7 @@ Dictionary<(int X, int Y), char> CycleGrid(Dictionary<(int X, int Y), char> grid
             int cycleLength = i - value;
             int remainingIterations = 1_000_000_000 - i;
             int cycleOccurrences = remainingIterations / cycleLength;
-        
+
             i += cycleLength * cycleOccurrences;
         }
         else
