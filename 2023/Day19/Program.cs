@@ -114,7 +114,6 @@ Dictionary<char, long[]> breakpoints = flows.Values
     .ToDictionary(x => x.Key, x => x.Item2);
 
 long total = 0;
-long count = breakpoints.Aggregate(1, (acc, next) => acc * next.Value.Length);
 foreach (var x in breakpoints['x'].Zip(breakpoints['x'][1..])) {
     Console.WriteLine(x);
     foreach (var m in breakpoints['m'].Zip(breakpoints['m'][1..])) {
@@ -122,9 +121,6 @@ foreach (var x in breakpoints['x'].Zip(breakpoints['x'][1..])) {
 
         foreach (var a in breakpoints['a'].Zip(breakpoints['a'][1..])) {
             foreach (var s in breakpoints['s'].Zip(breakpoints['s'][1..])) {
-                if (count-- % 1_000_000_000 == 0) {
-                    Console.WriteLine(count);
-                }
                 if (Accept(new Dictionary<char, long> {
                     ['x'] = x.First,
                     ['m'] = m.First,
