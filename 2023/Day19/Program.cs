@@ -115,10 +115,7 @@ Dictionary<char, long[]> breakpoints = flows.Values
 
 long total = 0;
 foreach (var x in breakpoints['x'].Zip(breakpoints['x'][1..])) {
-    Console.WriteLine(x);
     foreach (var m in breakpoints['m'].Zip(breakpoints['m'][1..])) {
-        Console.WriteLine(m);
-
         foreach (var a in breakpoints['a'].Zip(breakpoints['a'][1..])) {
             foreach (var s in breakpoints['s'].Zip(breakpoints['s'][1..])) {
                 if (Accept(new Dictionary<char, long> {
