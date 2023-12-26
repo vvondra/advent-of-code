@@ -20,7 +20,9 @@ foreach (var line in input)
         if (!adjacencyList.ContainsKey(adjacentVertex))
         {
             adjacencyList[adjacentVertex] = [vertex];
-        } else {
+        }
+        else
+        {
             adjacencyList[adjacentVertex].Add(vertex);
         }
     }
@@ -38,16 +40,15 @@ Console.WriteLine(CalculateComponentSize(adjacencyList, "chr") * CalculateCompon
 
 int CalculateComponentSize(Dictionary<string, List<string>> adjacency, string startVertex)
 {
-    HashSet<string> visited = new();
+    HashSet<string> visited = [];
     Queue<string> queue = new();
     int componentSize = 0;
 
     queue.Enqueue(startVertex);
     visited.Add(startVertex);
 
-    while (queue.Count > 0)
+    while (queue.TryDequeue(out var currentVertex))
     {
-        var currentVertex = queue.Dequeue();
         componentSize++;
 
         foreach (var adjacentVertex in adjacency[currentVertex])
