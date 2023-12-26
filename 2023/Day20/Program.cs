@@ -28,7 +28,7 @@ for (var i = 0; i < 1000; i++)
 }
 Console.WriteLine(high * low);
 
-List<string> nodes = ["tr", "xm", "dr", "nh"];
+List<string> nodes = ["tr", "xm", "dr", "nh"]; // load the input as a graphviz graph to see why
 
 var times = nodes
     .Select(node => {
