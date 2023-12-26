@@ -1,6 +1,6 @@
 ﻿var input = File.ReadLines("input.txt")
     .Select(line => line.Split(" "))
-    .Select(line => (dir: line[0][0], steps: int.Parse(line[1]), color: line[2]));
+    .Select(line => (dir: line[0][0], steps: long.Parse(line[1]), color: line[2][1..]));
 
 var next = new Dictionary<char, (int X, int Y)>() {
     { 'R', (1, 0) },
@@ -10,8 +10,22 @@ var next = new Dictionary<char, (int X, int Y)>() {
 };
 
 var loop = Walk(input.Select(x => (x.dir, x.steps)).ToList(), (0, 0)).ToList();
+Console.WriteLine(CalculateSurfaceArea(loop));
 
-double CalculateSurfaceArea(List<(int X, int Y)> vertices)
+var loop2 = Walk(input.Select(x => {
+    var dir = x.color[6] switch
+    {
+        '0' => 'R',
+        '1' => 'D',
+        '2' => 'L',
+        '3' => 'U',
+    };
+    var steps = Convert.ToInt64(x.color[1..6], 16);
+    return (dir, steps);
+}).ToList(), (0, 0)).ToList();
+Console.WriteLine(CalculateSurfaceArea(loop2));
+
+double CalculateSurfaceArea(List<(long X, long Y)> vertices)
 {
     int n = vertices.Count;
     double area = 0;
@@ -27,10 +41,7 @@ double CalculateSurfaceArea(List<(int X, int Y)> vertices)
     return Math.Abs(area / 2);
 }
 
-Console.WriteLine(CalculateSurfaceArea(loop));
-
-
-IEnumerable<(int X, int Y)> Walk(List<(char dir, int steps)> values, (int, int) start)
+IEnumerable<(long X, long Y)> Walk(List<(char dir, long steps)> values, (long, long) start)
 {
     var (x, y) = start;
     var n = values.Count;
