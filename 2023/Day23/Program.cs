@@ -11,6 +11,44 @@ var end = grid.First(el => el.Key.Y == maxX && el.Value == '.').Key;
 var slipperyEdges = ExploreMaze(start, end);
 Console.WriteLine(LongestPath(start, end, slipperyEdges));
 
+var nonSlipperyEdges = slipperyEdges
+    .SelectMany(edge => new[] { (edge.Key, edge.Value), ((edge.Key.Item2, edge.Key.Item1), edge.Value) })
+    .ToDictionary(kvp => kvp.Item1, kvp => kvp.Value);
+
+Console.WriteLine(DFS(start, end, nonSlipperyEdges));
+
+int DFS(XY from, XY to, Dictionary<(XY, XY), int> edges)
+{
+    var visited = new HashSet<XY>();
+    var longestPath = 0;
+
+    DFSHelper(from, to, edges, visited, 0, ref longestPath);
+
+    return longestPath;
+}
+
+void DFSHelper(XY current, XY to, Dictionary<(XY, XY), int> edges, HashSet<XY> visited, int currentPathWeight, ref int longestPath)
+{
+    visited.Add(current);
+
+    if (current == to)
+    {
+        longestPath = Math.Max(longestPath, currentPathWeight);
+        visited.Remove(current);
+        return;
+    }
+
+    foreach (var neighbor in GetNeighbors(current, edges))
+    {
+        if (!visited.Contains(neighbor))
+        {
+            var weight = edges[(current, neighbor)];
+            DFSHelper(neighbor, to, edges, visited, currentPathWeight + weight, ref longestPath);
+        }
+    }
+
+    visited.Remove(current);
+}
 
 int LongestPath(XY from, XY to, Dictionary<(XY, XY), int> edges)
 {
@@ -75,7 +113,7 @@ Dictionary<(XY, XY), int> ExploreMaze(XY start, XY end)
     var edges = new Dictionary<(XY, XY), int>();
 
     queue.Enqueue((start, start, 0, new XY(start.Y, start.X - 1)));
-    edges.Add((start, start), 0);
+    //edges.Add((start, start), 0);
 
     var allowedDirs = new Dictionary<char, XY>
     {
