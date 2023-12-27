@@ -11,7 +11,7 @@ var input = File.ReadLines("input.txt")
     .ToArray();
 
 
-using (Context ctx = new Context())
+using (Context ctx = new())
 {
     IntExpr x = ctx.MkIntConst("x");
     IntExpr y = ctx.MkIntConst("y");
@@ -22,14 +22,32 @@ using (Context ctx = new Context())
 
     Solver s = ctx.MkSolver();
 
+    int index = 0;
     foreach (var item in input)
     {
+        IntExpr t = ctx.MkIntConst("t" + index++);
+        s.Add(ctx.MkGe(t, ctx.MkInt(0)));
         var point = item[0];
         var vector = item[1];
 
-        s.Add(ctx.MkEq(ctx.MkAdd(ctx.MkMul(ctx.MkInt(point[0]), vx), x), ctx.MkInt(vector[0])));
-        s.Add(ctx.MkEq(ctx.MkAdd(ctx.MkMul(ctx.MkInt(point[1]), vy), y), ctx.MkInt(vector[1])));
-        s.Add(ctx.MkEq(ctx.MkAdd(ctx.MkMul(ctx.MkInt(point[2]), vz), z), ctx.MkInt(vector[2])));
+        s.Add(
+            ctx.MkEq(
+                ctx.MkAdd(ctx.MkMul(t, vx), x),
+                ctx.MkAdd(ctx.MkMul(t, ctx.MkInt(vector[0])), ctx.MkInt(point[0]))
+            )
+        );
+        s.Add(
+            ctx.MkEq(
+                ctx.MkAdd(ctx.MkMul(t, vy), y),
+                ctx.MkAdd(ctx.MkMul(t, ctx.MkInt(vector[1])), ctx.MkInt(point[1]))
+            )
+        );
+        s.Add(
+            ctx.MkEq(
+                ctx.MkAdd(ctx.MkMul(t, vz), z),
+                ctx.MkAdd(ctx.MkMul(t, ctx.MkInt(vector[2])), ctx.MkInt(point[2]))
+            )
+        );
     }
 
     if (s.Check() == Status.SATISFIABLE)
