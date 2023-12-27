@@ -1,7 +1,7 @@
 # advent-of-code
 ## 2023
 
-De-rusting my C#
+De-rusting my C#, an obvious choice given I joined [Microsoft](https://entra.microsoft.com) earlier this year
 
 ## 2021-2022
 
