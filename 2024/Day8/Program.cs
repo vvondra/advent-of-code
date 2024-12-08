@@ -21,31 +21,31 @@ var result = pairs
     .SelectMany(p => p)
     .Select(p => p.Item1 + (p.Item1 - p.Item2))
     .Where(xy => xy.X >= 0 && xy.X < maxX && xy.Y >= 0 && xy.Y < maxY)
-    .Distinct()
     .ToHashSet();
 
-Console.WriteLine(result.Count());
+Console.WriteLine(result.Count);
 
-
-for (var x = 0; x < maxX; x++)
-{
-    for (var y = 0; y < maxY; y++)
+var result2 = pairs.Values
+    .SelectMany(pairList => pairList.SelectMany(pair =>
     {
-        if (result.Contains(new XY(x, y)))
+        var start = pair.Item1;
+        var end = pair.Item2;
+        var vector = start - end;
+
+        var points = new List<XY> { start, end };
+        var current = start + vector;
+
+        while (current.X >= 0 && current.X < maxX && current.Y >= 0 && current.Y < maxY)
         {
-            Console.Write('#');
+            points.Add(current);
+            current += vector;
         }
-        else if (grid.ContainsKey(new XY(x, y)))
-        {
-            Console.Write(grid[new XY(x, y)]);
-        }
-        else
-        {
-            Console.Write('.');
-        }
-    }
-    Console.WriteLine();
-}
+
+        return points;
+    }))
+    .ToHashSet();
+
+Console.WriteLine(result2.Count);
 
 record XY(int X, int Y)
 {
