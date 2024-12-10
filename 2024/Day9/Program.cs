@@ -3,18 +3,18 @@
 var input = File.ReadAllText("input.txt").Trim().ToCharArray();
 
 var (head, tail) = CreateList(input);
-
-Console.WriteLine(Print(head));
-head = Compress(head, tail);
-
+head = CompressBlocks(head, tail);
 Console.WriteLine(head.Checksum());
 
-static Node Compress(Node head, Node tail)
-{
-    var empty = FirstEmpty(head);
-    var full = LastFull(tail);
+var (head2, tail2) = CreateList(input);
 
-    var last = tail;
+head2 = CompressFiles(head2, tail2);
+Console.WriteLine(head2.Checksum());
+
+static Node CompressBlocks(Node head, Node tail)
+{
+    var empty = head.FirstEmpty();
+    var full = tail.LastFull();
     while (true)
     {
         if (full == null || empty == null)
@@ -26,8 +26,7 @@ static Node Compress(Node head, Node tail)
         {
             empty.Id = full.Id;
             full.Size -= empty.Size;
-            empty = FirstEmpty(head);
-            full = LastFull(tail);
+            empty = head.FirstEmpty();
         }
         else if (empty.Size > full.Size)
         {
@@ -39,58 +38,55 @@ static Node Compress(Node head, Node tail)
 
             empty.Size -= full.Size;
             full.Size = 0;
-            full = LastFull(tail);
+        }
+
+        full = tail.LastFull();
+    }
+
+    return head;
+}
+
+static Node CompressFiles(Node head, Node tail)
+{
+    var full = tail.LastFullNotMoved();
+    var empty = head.FirstEmpty();
+
+    while (full != null)
+    {
+        if (empty == null)
+        {
+            empty = head.FirstEmptyBeforeFull(full);
+            full = full?.Previous?.LastFullNotMoved();
+
+        }
+        else if (empty.Size < full.Size)
+        {
+            empty = empty?.Next?.FirstEmptyBeforeFull(full);
+        }
+        else if (empty.Size >= full.Size)
+        {
+            var node = new Node(full.Size, full.Id);
+            node.Moved = true;
+            empty.Previous.Next = node;
+            node.Next = empty;
+            node.Previous = empty.Previous;
+            empty.Previous = node;
+
+            empty.Size -= full.Size;
+            full.Id = null;
+            full = full.LastFullNotMoved();
+            empty = head.FirstEmptyBeforeFull(full);
         }
     }
 
     return head;
 }
 
-static string Print(Node head)
-{
-    var current = head;
-    var result = new StringBuilder();
-    while (current != null)
-    {
-        result.Append(current);
-        current = current.Next;
-    }
-    return result.ToString();
-}
-
-static Node FirstEmpty(Node head)
-{
-    var current = head;
-    while (current != null)
-    {
-        if (current.IsFreeSpace && current.Size > 0)
-        {
-            return current;
-        }
-        current = current.Next;
-    }
-    return null;
-}
-
-static Node LastFull(Node tail)
-{
-    var current = tail;
-    while (current != null)
-    {
-        if (!current.IsFreeSpace && current.Size > 0)
-        {
-            return current;
-        }
-        current = current.Previous;
-    }
-    return null;
-}
-
 static (Node head, Node tail) CreateList(char[] input)
 {
     var head = new Node(0);
     var node = head;
-    Node tail = null;
+    Node? tail = null;
     var index = 0;
 
     foreach (var c in input)
@@ -110,8 +106,10 @@ public class Node
 {
     public int Size { get; set; }
     public int? Id { get; set; }
-    public Node Next { get; set; }
-    public Node Previous { get; set; }
+    public Node? Next { get; set; }
+    public Node? Previous { get; set; }
+
+    public bool Moved { get; set; } = false;
 
     public Node(int size, int? id = null)
     {
@@ -122,6 +120,62 @@ public class Node
     }
 
     public bool IsFreeSpace => Id == null;
+
+    public Node? FirstEmpty()
+    {
+        var current = this;
+        while (current != null)
+        {
+            if (current.IsFreeSpace && current.Size > 0)
+            {
+                return current;
+            }
+            current = current.Next;
+        }
+        return null;
+    }
+
+    public Node? FirstEmptyBeforeFull(Node full)
+    {
+        var current = this;
+        while (current != null && current != full)
+        {
+            if (current.IsFreeSpace && current.Size > 0)
+            {
+                return current;
+            }
+            current = current.Next;
+        }
+        return null;
+    }
+
+    public Node? LastFull()
+    {
+        var current = this;
+        while (current != null)
+        {
+            if (!current.IsFreeSpace && current.Size > 0)
+            {
+                return current;
+            }
+            current = current.Previous;
+        }
+        return null;
+    }
+
+    public Node? LastFullNotMoved()
+    {
+        var current = this;
+        while (current != null)
+        {
+            if (!current.IsFreeSpace && current.Size > 0 && !current.Moved)
+            {
+                return current;
+            }
+            current = current.Previous;
+        }
+        return null;
+    }
 
     public long Checksum()
     {
@@ -137,6 +191,10 @@ public class Node
                 {
                     checksum += current.Id.Value * (position + i);
                 }
+                position += current.Size;
+            }
+            if (current.IsFreeSpace)
+            {
                 position += current.Size;
             }
             current = current.Next;
