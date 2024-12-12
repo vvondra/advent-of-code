@@ -48,8 +48,61 @@ int Perimeter(ISet<XY> region) =>
     region.Count * 4 - region.Sum(xy => xy.Adjacent().Count(region.Contains));
 
 var result = Explore().Select(x => x.Count * Perimeter(x)).Sum();
-
 Console.WriteLine(result);
+
+var result2 = Explore().Select(x => x.Count * PerimeterSides(x)).Sum();
+Console.WriteLine(result2);
+
+int PerimeterSides(ISet<XY> region)
+{
+    var perimeterXY = region
+        .SelectMany(xy => xy.Adjacent())
+        .Where(xy => !region.Contains(xy))
+        .ToHashSet();
+
+    List<ISet<XY>> sides = [];
+
+    while (perimeterXY.Count > 0)
+    {
+        var start = perimeterXY.First();
+        perimeterXY.Remove(start);
+
+        var queue = new Queue<XY>();
+        queue.Enqueue(start);
+
+        var side = new HashSet<XY> { start };
+        XY direction = null;
+
+        while (queue.Count > 0)
+        {
+            var next = queue.Dequeue();
+
+            foreach (var adj in next.Adjacent())
+            {
+                if (perimeterXY.Contains(adj))
+                {
+                    if (direction == null)
+                    {
+                        direction = adj - next;
+                    }
+                    else if (direction != adj - next)
+                    {
+                        continue;
+                    }
+
+                    queue.Enqueue(adj);
+                    side.Add(adj);
+                    perimeterXY.Remove(adj);
+                }
+            }
+        }
+
+        sides.Add(side);
+    }
+
+    return sides.Count;
+}
+
 
 record XY(int Y, int X)
 {
