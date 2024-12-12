@@ -27,6 +27,6 @@ New-Item -ItemType File -Name "input.txt"
 Set-Location ..
 
 # Rerun slngen to update the solution file
-slngen **/*.csproj -o 2024.sln 2024.sln --launch false
+slngen **/*.csproj -o 2024.sln --launch false
 
 Write-Host "New day folder created and solution updated successfully."
