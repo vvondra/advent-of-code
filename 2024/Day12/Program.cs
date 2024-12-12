@@ -50,57 +50,40 @@ int Perimeter(ISet<XY> region) =>
 var result = Explore().Select(x => x.Count * Perimeter(x)).Sum();
 Console.WriteLine(result);
 
-var result2 = Explore().Select(x => x.Count * PerimeterSides(x)).Sum();
+var result2 = Explore().Select(x => x.Count * CountCorners(x)).Sum();
 Console.WriteLine(result2);
 
-int PerimeterSides(ISet<XY> region)
-{
-    var perimeterXY = region
-        .SelectMany(xy => xy.Adjacent())
-        .Where(xy => !region.Contains(xy))
-        .ToHashSet();
+int CountCorners(ISet<XY> region) {
+    var sides = 0;
+    foreach (var xy in region) {
+        var corners = new[] {
+            new XY(-1, -1), new XY(-1, 1), new XY(1, -1), new XY(1, 1)
+        };
 
-    List<ISet<XY>> sides = [];
-
-    while (perimeterXY.Count > 0)
-    {
-        var start = perimeterXY.First();
-        perimeterXY.Remove(start);
-
-        var queue = new Queue<XY>();
-        queue.Enqueue(start);
-
-        var side = new HashSet<XY> { start };
-        XY direction = null;
-
-        while (queue.Count > 0)
+        foreach (var corner in corners)
         {
-            var next = queue.Dequeue();
+            var adjacentPoints = new[] {
+                xy + corner,
+                xy + corner + new XY(-corner.Y, 0),
+                xy + corner + new XY(0, -corner.X)
+            };
 
-            foreach (var adj in next.Adjacent())
+            // Count outer corners
+            if (adjacentPoints.Count(adj => !region.Contains(adj)) >= 3)
             {
-                if (perimeterXY.Contains(adj))
-                {
-                    if (direction == null)
-                    {
-                        direction = adj - next;
-                    }
-                    else if (direction != adj - next)
-                    {
-                        continue;
-                    }
+                sides++;
+            }
 
-                    queue.Enqueue(adj);
-                    side.Add(adj);
-                    perimeterXY.Remove(adj);
-                }
+            // Count inner corners
+            if (!region.Contains(xy + corner) &&
+                region.Contains(xy + corner + new XY(-corner.Y, 0)) &&
+                region.Contains(xy + corner + new XY(0, -corner.X)))
+            {
+                sides++;
             }
         }
-
-        sides.Add(side);
     }
-
-    return sides.Count;
+    return sides;
 }
 
 
@@ -113,7 +96,11 @@ record XY(int Y, int X)
 
     public static XY operator -(XY me, XY other) => new(Y: me.Y - other.Y, X: me.X - other.X);
 
+    public XY Opposite => new(-Y, -X);
+
     public static readonly XY[] Dirs = [new(-1, 0), new(0, -1), new(0, 1), new(1, 0)];
 
     public IEnumerable<XY> Adjacent() => Dirs.Select(dir => this + dir);
+
+    public override string ToString() => $"({Y}, {X})";
 }
