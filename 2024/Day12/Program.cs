@@ -74,6 +74,14 @@ int CountCorners(ISet<XY> region) {
                 sides++;
             }
 
+            // Count cross corners
+            if (region.Contains(xy + corner) && 
+                !region.Contains(xy + corner + new XY(-corner.Y, 0)) &&
+                !region.Contains(xy + corner + new XY(0, -corner.X)))
+            {
+                sides++;
+            }
+
             // Count inner corners
             if (!region.Contains(xy + corner) &&
                 region.Contains(xy + corner + new XY(-corner.Y, 0)) &&
