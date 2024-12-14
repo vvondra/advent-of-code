@@ -1,0 +1,17 @@
+﻿<Properties StartupConfiguration="{D9238FA3-F47B-48C5-8D12-DDA4454985B8}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="17/Script.fsx">
+    <Files>
+      <File FileName="17/Tutorial.fs" Line="162" Column="20" />
+      <File FileName="17/Script.fsx" Line="8" Column="27" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="__FSI__.fsx" line="42" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.17 PreferredExecutionTarget="MonoDevelop.Default" FirstBuild="True" />
+  <MultiItemStartupConfigurations />
+</Properties>
