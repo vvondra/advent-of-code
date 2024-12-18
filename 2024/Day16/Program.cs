@@ -1,4 +1,6 @@
-﻿var grid = File.ReadLines("input.txt")
+﻿using System.Reflection;
+
+var grid = File.ReadLines("input.txt")
     .SelectMany(
         (line, row) =>
             line.Select((ch, col) => new { Coordinate = new XY(row, col), Character = ch })
@@ -13,46 +15,78 @@ Console.WriteLine(result);
 
 int FindShortestPath()
 {
-    var queue = new PriorityQueue<(XY Position, int Distance, XY PreviousDirection), int>();
-    var visited = new Dictionary<XY, int>();
-    queue.Enqueue((start, 0, new XY(0, 1)), 0);
+    var queue = new PriorityQueue<(XY Position, int Distance, XY PreviousDirection, (XY, XY)? prev), int>();
+    var shortest = new Dictionary<(XY, XY), int>();
+    var previous = new Dictionary<(XY, XY), HashSet<(XY, XY)?>>();
+    queue.Enqueue((start, 0, new XY(0, 1), null), 0);
 
     var best = int.MaxValue;
     var paths = 0;
 
     while (queue.Count > 0)
     {
-        var (current, distance, previousDirection) = queue.Dequeue();
+        var (current, distance, previousDirection, prev) = queue.Dequeue();
 
-        foreach (var dir in XY.Dirs)
+        if (!shortest.ContainsKey((current, previousDirection)))
         {
-            var next = current + dir;
+            shortest[(current, previousDirection)] = distance;
+            previous[(current, previousDirection)] = [prev];
+        } else if (shortest[(current, previousDirection)] == distance) {
+            previous[(current, previousDirection)].Add(prev);
+        }
+
+        foreach (var dir in XY.Dirs.Where(dir => dir != previousDirection.Opposite))
+        {
+            var next = previousDirection != dir ? current : current + dir;
+
             if (grid.ContainsKey(next) && grid[next] != '#')
             {
-                int newDistance = distance + 1;
-                if (previousDirection != dir)
-                {
-                    newDistance += 1000; // Add turning cost
-                }
+                int newDistance = previousDirection != dir ? distance + 1000 : distance + 1;
 
-                if (newDistance > best)
+                if (newDistance > best && queue.Peek().Distance >= newDistance)
                 {
-                    Console.WriteLine($"Paths: {paths}");
+                    Console.WriteLine(DistinctXYs(previous));
                     return best;
                 }
 
-                if (next == end)
+                if (next == end && newDistance <= best)
                 {
                     best = newDistance;
                     paths++;
                 }
 
-                queue.Enqueue((next, newDistance, dir), newDistance);
+                if (!previous.ContainsKey((next, dir.Opposite))) {
+                    queue.Enqueue((next, newDistance, dir, (current, previousDirection)), newDistance);
+                }
             }
         }
     }
 
-    return -1;
+    return best;
+}
+
+int DistinctXYs(Dictionary<(XY, XY), HashSet<(XY, XY)?>> previous)
+{
+    var queue = new Queue<(XY, XY)>();
+    previous.Keys.Where(k => k.Item1 == end).ToList().ForEach(queue.Enqueue);
+
+    var visited = new HashSet<XY> { end };
+
+    while (queue.Count > 0)
+    {
+        var current = queue.Dequeue();
+
+        foreach (var prev in previous[current])
+        {
+            if (prev.HasValue)
+            {
+                visited.Add(prev.Value.Item1);
+                queue.Enqueue(prev.Value);
+            }
+        }
+    }
+
+    return visited.Count;
 }
 
 record XY(int Y, int X)
