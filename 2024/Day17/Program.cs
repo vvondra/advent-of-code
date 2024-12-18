@@ -9,7 +9,7 @@ var ops = input[1].Split(": ")[1].Split(",").Select(long.Parse).ToList();
 IEnumerable<long> RunVM(Dictionary<char, long> registers, List<long> ops)
 {
     var reg = registers.ToDictionary(x => x.Key, x => x.Value);
-    int pc = 0; 
+    int pc = 0;
 
     while (pc < ops.Count)
     {
@@ -72,29 +72,33 @@ IEnumerable<long> RunVM(Dictionary<char, long> registers, List<long> ops)
 
 Console.WriteLine(string.Join(",", RunVM(registers, ops)));
 
-long TestRun(long A, IEnumerable<long> testedOps, List<long> remainingOps) {
-    if (remainingOps.Count == 0) {
+long TestRun(long A, IEnumerable<long> testedOps, List<long> remainingOps)
+{
+    if (remainingOps.Count == 0)
+    {
         return A;
     }
 
     var test = remainingOps.First();
     var newTested = testedOps.Concat([test]).ToList();
 
-
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < 8; i++)
+    {
         var reg = new Dictionary<char, long> { ['A'] = A * 8 + i, ['B'] = 0, ['C'] = 0 };
         var output = RunVM(reg, ops).Reverse().ToList();
 
-        if (output.SequenceEqual(newTested)) {
+        if (output.SequenceEqual(newTested))
+        {
             var result = TestRun(A * 8 + i, newTested, remainingOps.Skip(1).ToList());
 
-            if (result != -1) {
+            if (result != -1)
+            {
                 return result;
             }
         }
     }
 
-    return -1;    
+    return -1;
 }
 
 var result = TestRun(0, [], ops.AsEnumerable().Reverse().ToList());
