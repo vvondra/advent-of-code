@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-var grid = File.ReadLines("input.txt")
+﻿var grid = File.ReadLines("input.txt")
     .SelectMany(
         (line, row) =>
             line.Select((ch, col) => new { Coordinate = new XY(row, col), Character = ch })
